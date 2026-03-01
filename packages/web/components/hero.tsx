@@ -1,26 +1,14 @@
 import styles from "./hero.module.css";
 import { CopyButton } from "./copy-button";
 
-const ASCII_ART = `
-███████╗██╗  ██╗██╗██╗     ██╗
-██╔════╝██║ ██╔╝██║██║     ██║
-███████╗█████╔╝ ██║██║     ██║
-╚════██║██╔═██╗ ██║██║     ██║
-███████║██║  ██╗██║███████╗███████╗
-╚══════╝╚═╝  ╚═╝╚═╝╚══════╝╚══════╝
-██╗   ██╗███████╗██████╗ ███████╗██╗ ██████╗ ███╗   ██╗███████╗
-██║   ██║██╔════╝██╔══██╗██╔════╝██║██╔═══██╗████╗  ██║██╔════╝
-██║   ██║█████╗  ██████╔╝███████╗██║██║   ██║██╔██╗ ██║███████╗
-╚██╗ ██╔╝██╔══╝  ██╔══██╗╚════██║██║██║   ██║██║╚██╗██║╚════██║
- ╚████╔╝ ███████╗██║  ██║███████║██║╚██████╔╝██║ ╚████║███████║
-  ╚═══╝  ╚══════╝╚═╝  ╚═╝╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝╚══════╝`.trim();
-
 export function Hero() {
 	return (
 		<section className={styles.hero}>
-			<pre className={styles.ascii} aria-label="SKILL VERSIONS">
-				{ASCII_ART}
-			</pre>
+			<h1 className={styles.title}>
+				<span className={styles.glow}>skill</span>
+				<span className={styles.glowDim}>-</span>
+				<span className={styles.glow}>versions</span>
+			</h1>
 			<p className={styles.tagline}>
 				Freshness checker for Agent Skills
 				<br />
