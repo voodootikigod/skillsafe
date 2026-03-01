@@ -1,19 +1,12 @@
 import chalk from "chalk";
-import * as semver from "semver";
 import { fetchLatestVersions } from "../npm.js";
 import { loadRegistry } from "../registry.js";
+import { getSeverity, normalizeVersion } from "../severity.js";
 import type { CheckResult } from "../types.js";
 
 interface ReportOptions {
 	registry?: string;
 	format?: "json" | "markdown";
-}
-
-function getSeverity(verified: string, latest: string): CheckResult["severity"] {
-	if (semver.eq(verified, latest)) return "current";
-	if (semver.major(latest) > semver.major(verified)) return "major";
-	if (semver.minor(latest) > semver.minor(verified)) return "minor";
-	return "patch";
 }
 
 /**
@@ -35,12 +28,12 @@ export async function reportCommand(options: ReportOptions): Promise<number> {
 
 		if (latest instanceof Error || !latest) continue;
 
-		const verified = semver.valid(semver.coerce(product.verifiedVersion));
-		const latestClean = semver.valid(semver.coerce(latest));
+		const verifiedNorm = normalizeVersion(product.verifiedVersion);
+		const latestNorm = normalizeVersion(latest);
 
-		if (!verified || !latestClean) continue;
+		if (!verifiedNorm || !latestNorm) continue;
 
-		const severity = getSeverity(verified, latestClean);
+		const severity = getSeverity(verifiedNorm.version, latestNorm.version);
 
 		results.push({
 			product: key,
