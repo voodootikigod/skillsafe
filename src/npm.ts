@@ -7,7 +7,7 @@ const NPM_REGISTRY = "https://registry.npmjs.org";
  * Uses the abbreviated metadata endpoint for speed.
  */
 export async function fetchLatestVersion(packageName: string): Promise<string> {
-	const url = `${NPM_REGISTRY}/${encodeURIComponent(packageName)}`;
+	const url = `${NPM_REGISTRY}/${packageName.replace("/", "%2F")}`;
 	const response = await fetch(url, {
 		headers: {
 			Accept: "application/vnd.npm.install-v1+json",
@@ -44,18 +44,23 @@ export async function fetchLatestVersions(
 
 	const settled = await Promise.allSettled(
 		unique.map(async (name) => {
-			const version = await fetchLatestVersion(name);
-			return { name, version };
+			try {
+				const version = await fetchLatestVersion(name);
+				return { name, version, error: undefined };
+			} catch (error) {
+				return { name, version: undefined, error: error instanceof Error ? error : new Error(String(error)) };
+			}
 		}),
 	);
 
 	for (const result of settled) {
 		if (result.status === "fulfilled") {
-			results.set(result.value.name, result.value.version);
-		} else {
-			const match = result.reason?.message?.match(/"([^"]+)"/);
-			const name = match?.[1] ?? "unknown";
-			results.set(name, new Error(result.reason?.message ?? "Unknown error"));
+			const { name, version, error } = result.value;
+			if (error) {
+				results.set(name, error);
+			} else {
+				results.set(name, version!);
+			}
 		}
 	}
 

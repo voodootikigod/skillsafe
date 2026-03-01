@@ -8,8 +8,6 @@ import type { ScannedSkill } from "./types.js";
  * Expects directory structure: skills/{skill-name}/SKILL.md
  */
 export async function scanSkills(skillsDir: string): Promise<ScannedSkill[]> {
-	const skills: ScannedSkill[] = [];
-
 	let entries: string[];
 	try {
 		entries = await readdir(skillsDir);
@@ -17,66 +15,67 @@ export async function scanSkills(skillsDir: string): Promise<ScannedSkill[]> {
 		throw new Error(`Cannot read skills directory: ${skillsDir}`);
 	}
 
-	for (const entry of entries) {
-		const skillPath = join(skillsDir, entry, "SKILL.md");
+	const results = await Promise.all(
+		entries.map(async (entry): Promise<ScannedSkill | null> => {
+			const skillPath = join(skillsDir, entry, "SKILL.md");
 
-		try {
-			const info = await stat(join(skillsDir, entry));
-			if (!info.isDirectory()) continue;
-		} catch {
-			continue;
-		}
-
-		let content: string;
-		try {
-			content = await readFile(skillPath, "utf-8");
-		} catch {
-			// No SKILL.md in this directory, skip
-			continue;
-		}
-
-		try {
-			const { data } = matter(content);
-			const skill: ScannedSkill = {
-				name: (data.name as string) ?? entry,
-				path: skillPath,
-			};
-
-			// Top-level product-version (most common format)
-			if (typeof data["product-version"] === "string") {
-				skill.productVersion = data["product-version"];
+			try {
+				const info = await stat(join(skillsDir, entry));
+				if (!info.isDirectory()) return null;
+			} catch {
+				return null;
 			}
 
-			// Also check nested metadata.product-version
-			if (!skill.productVersion && data.metadata && typeof data.metadata === "object") {
-				const meta = data.metadata as Record<string, unknown>;
-				if (typeof meta["product-version"] === "string") {
-					skill.productVersion = meta["product-version"];
+			let content: string;
+			try {
+				content = await readFile(skillPath, "utf-8");
+			} catch {
+				// No SKILL.md in this directory, skip
+				return null;
+			}
+
+			try {
+				const { data } = matter(content);
+				const skill: ScannedSkill = {
+					name: (data.name as string) ?? entry,
+					path: skillPath,
+				};
+
+				// Top-level product-version (most common format)
+				if (typeof data["product-version"] === "string") {
+					skill.productVersion = data["product-version"];
 				}
-			}
 
-			// Product name from metadata.product or top-level product
-			if (data.metadata && typeof data.metadata === "object") {
-				const meta = data.metadata as Record<string, unknown>;
-				if (typeof meta.product === "string") {
-					skill.product = meta.product;
+				// Also check nested metadata.product-version
+				if (!skill.productVersion && data.metadata && typeof data.metadata === "object") {
+					const meta = data.metadata as Record<string, unknown>;
+					if (typeof meta["product-version"] === "string") {
+						skill.productVersion = meta["product-version"];
+					}
 				}
-			}
-			if (!skill.product && typeof data.product === "string") {
-				skill.product = data.product;
-			}
 
-			skills.push(skill);
-		} catch {
-			// Malformed frontmatter, skip with warning
-			skills.push({
-				name: entry,
-				path: skillPath,
-			});
-		}
-	}
+				// Product name from metadata.product or top-level product
+				if (data.metadata && typeof data.metadata === "object") {
+					const meta = data.metadata as Record<string, unknown>;
+					if (typeof meta.product === "string") {
+						skill.product = meta.product;
+					}
+				}
+				if (!skill.product && typeof data.product === "string") {
+					skill.product = data.product;
+				}
 
-	return skills.sort((a, b) => a.name.localeCompare(b.name));
+				return skill;
+			} catch {
+				// Malformed frontmatter, skip with warning
+				return { name: entry, path: skillPath };
+			}
+		}),
+	);
+
+	return results
+		.filter((s): s is ScannedSkill => s !== null)
+		.sort((a, b) => a.name.localeCompare(b.name));
 }
 
 /**
