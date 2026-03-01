@@ -25,7 +25,7 @@
 		0 0 20px rgba(80, 227, 194, 0.4),
 		0 0 40px rgba(80, 227, 194, 0.2),
 		0 0 80px rgba(80, 227, 194, 0.1);
-	animation: flicker 4s ease-in-out infinite alternate;
+	animation: breathe 4s ease-in-out infinite;
 }
 
 .glowDim {
@@ -33,9 +33,10 @@
 	text-shadow:
 		0 0 7px rgba(80, 227, 194, 0.3),
 		0 0 20px rgba(80, 227, 194, 0.15);
+	animation: breathe 4s ease-in-out infinite;
 }
 
-@keyframes flicker {
+@keyframes breathe {
 	0%, 100% {
 		text-shadow:
 			0 0 7px rgba(80, 227, 194, 0.7),
@@ -45,28 +46,9 @@
 	}
 	50% {
 		text-shadow:
-			0 0 4px rgba(80, 227, 194, 0.5),
-			0 0 12px rgba(80, 227, 194, 0.25),
-			0 0 28px rgba(80, 227, 194, 0.12);
-	}
-	92% {
-		text-shadow:
-			0 0 7px rgba(80, 227, 194, 0.7),
-			0 0 20px rgba(80, 227, 194, 0.4),
-			0 0 40px rgba(80, 227, 194, 0.2),
-			0 0 80px rgba(80, 227, 194, 0.1);
-	}
-	93% {
-		text-shadow: none;
-		color: rgba(80, 227, 194, 0.3);
-	}
-	94% {
-		text-shadow:
-			0 0 7px rgba(80, 227, 194, 0.7),
-			0 0 20px rgba(80, 227, 194, 0.4),
-			0 0 40px rgba(80, 227, 194, 0.2),
-			0 0 80px rgba(80, 227, 194, 0.1);
-		color: #fff;
+			0 0 4px rgba(80, 227, 194, 0.3),
+			0 0 10px rgba(80, 227, 194, 0.15),
+			0 0 20px rgba(80, 227, 194, 0.07);
 	}
 }
 
