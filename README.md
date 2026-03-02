@@ -98,6 +98,40 @@ Generate a full staleness report.
 | `-r, --registry <path>` | Path to registry file |
 | `-f, --format <type>` | Output format: `json` or `markdown` (default: `markdown`) |
 
+### `skill-versions refresh [skills-dir]`
+
+Use an LLM to propose targeted updates to stale skill files. Fetches changelogs, generates diffs, and optionally applies changes.
+
+| Flag | Description |
+|------|-------------|
+| `-r, --registry <path>` | Path to registry file |
+| `-p, --product <name>` | Refresh a single product |
+| `--provider <name>` | LLM provider: `anthropic`, `openai`, `google` |
+| `--model <id>` | Specific model ID (e.g. `claude-sonnet-4-20250514`) |
+| `-y, --yes` | Auto-apply without confirmation |
+| `--dry-run` | Show proposed changes, write nothing |
+
+**Provider setup:** Install a provider SDK and set the API key:
+
+```bash
+# Anthropic (Claude)
+npm install @ai-sdk/anthropic
+export ANTHROPIC_API_KEY=sk-...
+
+# OpenAI
+npm install @ai-sdk/openai
+export OPENAI_API_KEY=sk-...
+
+# Google (Gemini)
+npm install @ai-sdk/google
+export GOOGLE_GENERATIVE_AI_API_KEY=...
+```
+
+The skills directory is resolved in priority order:
+1. CLI argument: `skill-versions refresh ./my-skills`
+2. Registry field: `"skillsDir": "./skills"` in skill-versions.json
+3. Default: `./skills`
+
 ## Exit Codes
 
 | Code | Meaning |

@@ -5,6 +5,7 @@ export interface Registry {
 	$schema?: string;
 	version: number;
 	lastCheck?: string;
+	skillsDir?: string;
 	products: Record<string, RegistryProduct>;
 }
 
