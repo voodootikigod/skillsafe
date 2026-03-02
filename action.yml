@@ -12,7 +12,7 @@ inputs:
     default: "skill-versions.json"
   node-version:
     description: "Node.js version to use"
-    default: "20"
+    default: "22"
   open-issues:
     description: "Open or update a GitHub issue when staleness is detected"
     default: "true"
