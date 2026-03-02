@@ -156,7 +156,8 @@ The `skill-versions.json` file maps products to npm packages:
       "verifiedVersion": "6.0.105",
       "verifiedAt": "2026-02-28T00:00:00Z",
       "changelog": "https://github.com/vercel/ai/releases",
-      "skills": ["ai-sdk-core", "ai-sdk-tools", "ai-sdk-react"]
+      "skills": ["ai-sdk-core", "ai-sdk-tools", "ai-sdk-react"],
+      "agents": ["ai-sdk-engineer"]
     }
   }
 }

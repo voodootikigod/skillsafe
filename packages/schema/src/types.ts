@@ -16,4 +16,5 @@ export interface RegistryProduct {
 	verifiedAt: string;
 	changelog?: string;
 	skills: string[];
+	agents?: string[];
 }

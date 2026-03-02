@@ -2,6 +2,7 @@ import { join } from "node:path";
 import { createInterface } from "node:readline";
 import { generateObject } from "ai";
 import chalk from "chalk";
+import matter from "gray-matter";
 import { fetchChangelog } from "../changelog.js";
 import { diffStats, formatDiff } from "../diff.js";
 import { buildSystemPrompt, buildUserPrompt } from "../llm/prompts.js";
@@ -233,6 +234,22 @@ export async function refreshCommand(
 
 			if (shouldApply) {
 				await writeSkillFile(skillPath, llmResult.updatedContent);
+
+				// Verify the LLM actually bumped the frontmatter product-version
+				const written = await readSkillFile(skillPath);
+				const writtenVersion = written.frontmatter["product-version"] as string | undefined;
+
+				if (writtenVersion !== result.latestVersion) {
+					console.log(
+						chalk.yellow(
+							`  ⚠ LLM did not bump product-version (got "${writtenVersion ?? "missing"}", expected "${result.latestVersion}") — patching`,
+						),
+					);
+					written.frontmatter["product-version"] = result.latestVersion;
+					const patched = matter.stringify(written.content, written.frontmatter);
+					await writeSkillFile(skillPath, patched);
+				}
+
 				console.log(chalk.green(`  ✓ Updated ${skillPath}`));
 				totalApplied++;
 			} else {

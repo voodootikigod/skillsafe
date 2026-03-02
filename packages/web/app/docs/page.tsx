@@ -159,7 +159,8 @@ export GOOGLE_GENERATIVE_AI_API_KEY=...`}
       "package": "ai",
       "verifiedVersion": "4.2.0",
       "verifiedAt": "2026-01-15T00:00:00Z",
-      "skills": ["ai-sdk-core", "ai-sdk-tools"]
+      "skills": ["ai-sdk-core", "ai-sdk-tools"],
+      "agents": ["ai-sdk-engineer"]
     }
   }
 }`}
