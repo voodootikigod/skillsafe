@@ -1,5 +1,5 @@
 {
-	"name": "@skill-versions/web",
+	"name": "@skillsafe/web",
 	"version": "0.1.0",
 	"private": true,
 	"scripts": {
@@ -10,7 +10,7 @@
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
-		"@skill-versions/schema": "*",
+		"@skillsafe/schema": "*",
 		"next": "^16.1.0",
 		"react": "^19.1.0",
 		"react-dom": "^19.1.0"

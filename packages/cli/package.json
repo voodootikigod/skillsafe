@@ -1,10 +1,10 @@
 {
-	"name": "skill-versions",
+	"name": "skillsafe",
 	"version": "0.1.0",
-	"description": "Freshness checker for Agent Skills — like npm outdated for skill knowledge",
+	"description": "Quality & integrity layer for Agent Skills — like npm outdated for skill knowledge",
 	"type": "module",
 	"bin": {
-		"skill-versions": "./dist/index.js"
+		"skillsafe": "./dist/index.js"
 	},
 	"files": [
 		"dist"
@@ -19,7 +19,7 @@
 	},
 	"keywords": [
 		"agent-skills",
-		"skill-versions",
+		"skillsafe",
 		"freshness",
 		"version-check",
 		"npm-outdated",
@@ -29,10 +29,10 @@
 	"license": "MIT",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/voodootikigod/skill-versions.git",
+		"url": "https://github.com/voodootikigod/skillsafe.git",
 		"directory": "packages/cli"
 	},
-	"homepage": "https://skill-versions.com",
+	"homepage": "https://skillsafe.sh",
 	"dependencies": {
 		"ai": "^6.0.0",
 		"chalk": "^5.4.1",
@@ -48,7 +48,7 @@
 		"@ai-sdk/openai": "^3.0.0"
 	},
 	"devDependencies": {
-		"@skill-versions/schema": "*",
+		"@skillsafe/schema": "*",
 		"@types/node": "^22.0.0",
 		"@types/semver": "^7.7.0",
 		"tsup": "^8.5.0",

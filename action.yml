@@ -1,4 +1,4 @@
-name: "Skill Versions Check"
+name: "Skillsafe Check"
 description: "Check skill freshness and optionally open GitHub issues for stale products"
 author: "voodootikigod"
 
@@ -8,8 +8,8 @@ branding:
 
 inputs:
   registry:
-    description: "Path to the skill-versions.json registry file"
-    default: "skill-versions.json"
+    description: "Path to the skillsafe.json registry file"
+    default: "skillsafe.json"
   node-version:
     description: "Node.js version to use"
     default: "22"
@@ -50,12 +50,12 @@ runs:
       shell: bash
       run: |
         set +e
-        OUTPUT=$(npx --yes skill-versions check --registry "${{ inputs.registry }}" --json --ci 2>&1)
+        OUTPUT=$(npx --yes skillsafe check --registry "${{ inputs.registry }}" --json --ci 2>&1)
         EXIT_CODE=$?
         set -e
 
         if [ "$EXIT_CODE" -eq 2 ]; then
-          echo "::error::skill-versions configuration error"
+          echo "::error::skillsafe configuration error"
           echo "$OUTPUT"
           exit 2
         fi
@@ -74,13 +74,13 @@ runs:
       if: steps.check.outputs.exit_code == '1'
       shell: bash
       run: |
-        REPORT=$(npx --yes skill-versions report --registry "${{ inputs.registry }}" --format markdown 2>/dev/null)
+        REPORT=$(npx --yes skillsafe report --registry "${{ inputs.registry }}" --format markdown 2>/dev/null)
 
         # Write multiline output
         {
-          echo "report<<SKILL_VERSIONS_EOF"
+          echo "report<<SKILLSAFE_EOF"
           echo "$REPORT"
-          echo "SKILL_VERSIONS_EOF"
+          echo "SKILLSAFE_EOF"
         } >> "$GITHUB_OUTPUT"
 
     - name: Upsert issue

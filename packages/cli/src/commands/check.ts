@@ -95,7 +95,7 @@ export async function checkCommand(options: CheckOptions): Promise<number> {
 	const current = results.filter((r) => !r.stale);
 
 	console.log();
-	console.log(chalk.bold("skill-versions"));
+	console.log(chalk.bold("skillsafe"));
 	console.log("=".repeat(50));
 
 	if (stale.length > 0) {
@@ -135,7 +135,7 @@ export async function checkCommand(options: CheckOptions): Promise<number> {
 
 	if (stale.length > 0) {
 		console.log();
-		console.log(chalk.dim('Run "skill-versions report --format markdown" for a full report.'));
+		console.log(chalk.dim('Run "skillsafe report --format markdown" for a full report.'));
 	}
 
 	console.log();

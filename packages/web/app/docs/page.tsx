@@ -7,9 +7,9 @@ import styles from "./docs.module.css";
 export const metadata: Metadata = {
 	title: "Docs",
 	description:
-		"CLI reference for skill-versions: init, check, report, and refresh commands. Registry format, SKILL.md frontmatter spec, AI-assisted refresh, and CI integration guide.",
+		"CLI reference for skillsafe: init, check, report, and refresh commands. Registry format, SKILL.md frontmatter spec, AI-assisted refresh, and CI integration guide.",
 	alternates: {
-		canonical: "https://skill-versions.com/docs",
+		canonical: "https://skillsafe.sh/docs",
 	},
 };
 
@@ -24,9 +24,9 @@ export default function DocsPage() {
 					<section>
 						<h2 id="overview">Overview</h2>
 						<p>
-							<code>skill-versions</code> is a freshness checker for Agent Skills. It compares the{" "}
-							<code>product-version</code> in your SKILL.md frontmatter against the npm registry and
-							flags stale skills.
+							<code>skillsafe</code> is a quality & integrity layer for Agent Skills. It compares
+							the <code>product-version</code> in your SKILL.md frontmatter against the npm registry
+							and flags stale skills.
 						</p>
 					</section>
 
@@ -34,11 +34,11 @@ export default function DocsPage() {
 						<h2 id="install">Installation</h2>
 						<p>No installation required. Run directly with npx:</p>
 						<pre>
-							<code>npx skill-versions check</code>
+							<code>npx skillsafe check</code>
 						</pre>
 						<p>Or install globally:</p>
 						<pre>
-							<code>npm install -g skill-versions</code>
+							<code>npm install -g skillsafe</code>
 						</pre>
 					</section>
 
@@ -49,16 +49,16 @@ export default function DocsPage() {
 							<code>init [dir]</code>
 						</h3>
 						<p>
-							Scan a skills directory for SKILL.md files and generate a{" "}
-							<code>skill-versions.json</code> registry.
+							Scan a skills directory for SKILL.md files and generate a <code>skillsafe.json</code>{" "}
+							registry.
 						</p>
 						<pre>
 							<code>
 								{`# Interactive mode (prompts for package mappings)
-npx skill-versions init ./skills
+npx skillsafe init ./skills
 
 # Non-interactive mode (auto-detect mappings)
-npx skill-versions init ./skills -y`}
+npx skillsafe init ./skills -y`}
 							</code>
 						</pre>
 
@@ -69,16 +69,16 @@ npx skill-versions init ./skills -y`}
 						<pre>
 							<code>
 								{`# Human-readable output
-npx skill-versions check
+npx skillsafe check
 
 # JSON output
-npx skill-versions check --json
+npx skillsafe check --json
 
 # CI mode (exit code 1 if stale)
-npx skill-versions check --ci
+npx skillsafe check --ci
 
 # Check a single product
-npx skill-versions check -p ai-sdk`}
+npx skillsafe check -p ai-sdk`}
 							</code>
 						</pre>
 
@@ -89,10 +89,10 @@ npx skill-versions check -p ai-sdk`}
 						<pre>
 							<code>
 								{`# Markdown report
-npx skill-versions report
+npx skillsafe report
 
 # JSON report
-npx skill-versions report --format json`}
+npx skillsafe report --format json`}
 							</code>
 						</pre>
 
@@ -106,19 +106,19 @@ npx skill-versions report --format json`}
 						<pre>
 							<code>
 								{`# Interactive mode — review each change
-npx skill-versions refresh ./skills
+npx skillsafe refresh ./skills
 
 # Auto-apply all changes
-npx skill-versions refresh -y
+npx skillsafe refresh -y
 
 # Preview only (no writes)
-npx skill-versions refresh --dry-run
+npx skillsafe refresh --dry-run
 
 # Use a specific provider/model
-npx skill-versions refresh --provider anthropic --model claude-sonnet-4-20250514
+npx skillsafe refresh --provider anthropic --model claude-sonnet-4-20250514
 
 # Refresh a single product
-npx skill-versions refresh -p ai-sdk`}
+npx skillsafe refresh -p ai-sdk`}
 							</code>
 						</pre>
 						<p>
@@ -145,13 +145,13 @@ export GOOGLE_GENERATIVE_AI_API_KEY=...`}
 					<section>
 						<h2 id="registry">Registry Format</h2>
 						<p>
-							The <code>skill-versions.json</code> file follows a{" "}
+							The <code>skillsafe.json</code> file follows a{" "}
 							<Link href="/schema.json">JSON Schema</Link> that editors can validate against:
 						</p>
 						<pre>
 							<code>
 								{`{
-  "$schema": "https://skill-versions.com/schema.json",
+  "$schema": "https://skillsafe.sh/schema.json",
   "version": 1,
   "products": {
     "ai-sdk": {
@@ -198,9 +198,9 @@ Your skill content here...`}
 						</p>
 						<pre>
 							<code>
-								{`- uses: voodootikigod/skill-versions@v1
+								{`- uses: voodootikigod/skillsafe@v1
   with:
-    registry: skill-versions.json  # default
+    registry: skillsafe.json  # default
     open-issues: "true"            # create/update issue on staleness
     fail-on-stale: "false"         # set "true" to block PRs`}
 							</code>
@@ -226,7 +226,7 @@ Your skill content here...`}
 										<code>registry</code>
 									</td>
 									<td>
-										<code>skill-versions.json</code>
+										<code>skillsafe.json</code>
 									</td>
 									<td>Path to registry file</td>
 								</tr>
@@ -329,7 +329,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: voodootikigod/skill-versions@v1
+      - uses: voodootikigod/skillsafe@v1
         with:
           fail-on-stale: "false"`}
 							</code>
@@ -342,7 +342,7 @@ jobs:
 						<pre>
 							<code>
 								{`- name: Check skill freshness
-  run: npx skill-versions check --ci`}
+  run: npx skillsafe check --ci`}
 							</code>
 						</pre>
 						<p>This exits with code 1 if any skills are stale, failing the pipeline.</p>

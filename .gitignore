@@ -1,8 +1,13 @@
+.DS_Store
 node_modules/
 dist/
-skill-versions.json
+skillsafe.json
 *.tgz
 .turbo/
 .next/
 packages/web/public/schema.json
 packages/web/tsconfig.tsbuildinfo
+
+# Dolt database files (added by bd init)
+.dolt/
+*.db

@@ -36,7 +36,7 @@ export function Problem() {
 					<div className={styles.point}>
 						<span className={styles.icon}>&#x2705;</span>
 						<div>
-							<h3 className={styles.pointTitle}>skill-versions fixes this</h3>
+							<h3 className={styles.pointTitle}>skillsafe fixes this</h3>
 							<p className={styles.pointDescription}>
 								A product registry, version checker, frontmatter convention, and AI-assisted refresh
 								&mdash; everything you need to keep agent skills current, automatically.

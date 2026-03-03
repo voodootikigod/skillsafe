@@ -1,19 +1,19 @@
-# skill-versions
+# skillsafe
 
-Freshness checker for [Agent Skills](https://agentskills.io) — like `npm outdated` for skill knowledge.
+Quality & integrity layer for [Agent Skills](https://agentskills.io) — like `npm outdated` for skill knowledge.
 
-Skills that reference versioned products (via `product-version` in frontmatter) can drift as upstream packages ship new releases. `skill-versions` detects this drift and reports which skills need updating.
+Skills that reference versioned products (via `product-version` in frontmatter) can drift as upstream packages ship new releases. `skillsafe` detects this drift and reports which skills need updating.
 
 ## Install
 
 ```bash
-npm install -g skill-versions
+npm install -g skillsafe
 ```
 
 Or run directly:
 
 ```bash
-npx skill-versions check
+npx skillsafe check
 ```
 
 ## Quick Start
@@ -24,24 +24,24 @@ Scan your skills directory and map products to npm packages:
 
 ```bash
 # Interactive — prompts for each mapping
-skill-versions init ./skills
+skillsafe init ./skills
 
 # Non-interactive — auto-detects common packages
-skill-versions init ./skills --yes
+skillsafe init ./skills --yes
 ```
 
-This creates a `skill-versions.json` registry file.
+This creates a `skillsafe.json` registry file.
 
 ### 2. Check for staleness
 
 ```bash
-skill-versions check
+skillsafe check
 ```
 
 Output:
 
 ```
-skill-versions
+skillsafe
 ==================================================
 
 STALE (2):
@@ -53,43 +53,43 @@ STALE (2):
 
 CURRENT (15): upstash-redis, next, turbo, ...
 
-Run "skill-versions report --format markdown" for a full report.
+Run "skillsafe report --format markdown" for a full report.
 ```
 
 ### 3. Generate a report
 
 ```bash
 # Markdown (for PRs, issues, dashboards)
-skill-versions report --format markdown > STALENESS.md
+skillsafe report --format markdown > STALENESS.md
 
 # JSON (for automation)
-skill-versions report --format json
+skillsafe report --format json
 ```
 
 ## CLI Reference
 
-### `skill-versions init [dir]`
+### `skillsafe init [dir]`
 
-Scan a skills directory and generate a `skill-versions.json` registry.
+Scan a skills directory and generate a `skillsafe.json` registry.
 
 | Flag | Description |
 |------|-------------|
 | `-y, --yes` | Non-interactive mode, auto-detect package mappings |
 | `-o, --output <path>` | Output path for registry file |
 
-### `skill-versions check`
+### `skillsafe check`
 
 Check skill versions against the npm registry.
 
 | Flag | Description |
 |------|-------------|
-| `-r, --registry <path>` | Path to registry file (default: `./skill-versions.json`) |
+| `-r, --registry <path>` | Path to registry file (default: `./skillsafe.json`) |
 | `-p, --product <name>` | Check a single product |
 | `--json` | Machine-readable JSON output |
 | `-v, --verbose` | Show all products including current |
 | `--ci` | Exit code 1 if any stale products found |
 
-### `skill-versions report`
+### `skillsafe report`
 
 Generate a full staleness report.
 
@@ -98,7 +98,92 @@ Generate a full staleness report.
 | `-r, --registry <path>` | Path to registry file |
 | `-f, --format <type>` | Output format: `json` or `markdown` (default: `markdown`) |
 
-### `skill-versions refresh [skills-dir]`
+### `skillsafe audit [dir]`
+
+Security audit and hallucination detection for skill files. Scans for hallucinated package references, prompt injection patterns, dangerous shell commands, broken URLs, and incomplete metadata. Includes an advisory database of known hallucinated packages, persistent disk caching, and `.skillsafeignore` support.
+
+| Flag | Description |
+|------|-------------|
+| `-f, --format <type>` | Output format: `terminal`, `json`, `markdown`, or `sarif` (default: `terminal`) |
+| `-o, --output <path>` | Write report to file |
+| `--fail-on <severity>` | Exit code 1 threshold: `critical`, `high`, `medium`, `low` (default: `high`) |
+| `--packages-only` | Only check package registries (fast) |
+| `--skip-urls` | Skip URL liveness checks |
+| `--ignore <path>` | Path to `.skillsafeignore` file |
+| `--verbose` | Show progress and scan details |
+| `--quiet` | Suppress output, exit code only |
+
+**Checkers:**
+
+| Tier | Category | Severity | What it checks |
+|------|----------|----------|----------------|
+| 1 | Hallucinated packages | Critical | Verifies npm/PyPI/crates.io packages actually exist |
+| 1b | Advisory database | Critical | Flags known hallucinated packages (Aikido Security, Socket.dev research) |
+| 2 | Prompt injection | Critical–Medium | Override instructions, data exfiltration, obfuscation (base64, zero-width Unicode) |
+| 3 | Dangerous commands | Critical–Medium | `rm -rf`, `curl \| bash`, sensitive file access (`.ssh`, `.aws`, `.env`) |
+| 4 | URL liveness | Medium | Verifies linked URLs respond (HEAD requests, 10s timeout) |
+| 5 | Metadata completeness | Medium–Low | Required/recommended frontmatter fields |
+
+**Output formats:**
+
+- `terminal` — chalk-colored, grouped by file with severity icons
+- `json` — machine-readable, full report structure
+- `markdown` — summary table + severity sections, suitable for PRs
+- `sarif` — SARIF 2.1.0 for GitHub Security tab integration
+
+**Ignore rules:**
+
+Create a `.skillsafeignore` file (one rule per line):
+
+```
+# Ignore all hallucinated-package findings
+hallucinated-package
+
+# Ignore prompt-injection in a specific file
+prompt-injection:skills/example/SKILL.md
+```
+
+Or use inline HTML comments in skill files:
+
+```markdown
+<!-- audit-ignore -->
+This line's findings will be suppressed.
+
+<!-- audit-ignore:dangerous-command -->
+This line's dangerous-command findings only will be suppressed.
+```
+
+**Caching:**
+
+Registry lookups are cached to `~/.cache/skillsafe/audit/` with a 1-hour TTL, so repeated runs are fast.
+
+```bash
+# Audit all skills in current directory
+skillsafe audit
+
+# JSON output for CI
+skillsafe audit ./skills --format json
+
+# SARIF for GitHub Security tab
+skillsafe audit ./skills --format sarif -o results.sarif
+
+# Write markdown report to file
+skillsafe audit ./skills --format markdown -o audit-report.md
+
+# Only check package registries (fastest)
+skillsafe audit ./skills --packages-only
+
+# Skip slow URL checks
+skillsafe audit ./skills --skip-urls
+
+# Fail only on critical findings
+skillsafe audit --fail-on critical
+
+# Quiet mode for CI (exit code only)
+skillsafe audit --quiet --fail-on high
+```
+
+### `skillsafe refresh [skills-dir]`
 
 Use an LLM to propose targeted updates to stale skill files. Fetches changelogs, generates diffs, and optionally applies changes.
 
@@ -128,25 +213,25 @@ export GOOGLE_GENERATIVE_AI_API_KEY=...
 ```
 
 The skills directory is resolved in priority order:
-1. CLI argument: `skill-versions refresh ./my-skills`
-2. Registry field: `"skillsDir": "./skills"` in skill-versions.json
+1. CLI argument: `skillsafe refresh ./my-skills`
+2. Registry field: `"skillsDir": "./skills"` in skillsafe.json
 3. Default: `./skills`
 
 ## Exit Codes
 
 | Code | Meaning |
 |------|---------|
-| `0` | All products current |
-| `1` | Stale products found (with `--ci` flag) |
+| `0` | All products current / audit clean (below threshold) |
+| `1` | Stale products found (with `--ci` flag) / audit findings at or above `--fail-on` threshold |
 | `2` | Configuration error (missing registry, bad format) |
 
 ## Registry Format
 
-The `skill-versions.json` file maps products to npm packages:
+The `skillsafe.json` file maps products to npm packages:
 
 ```json
 {
-  "$schema": "https://skill-versions.com/schema.json",
+  "$schema": "https://skillsafe.sh/schema.json",
   "version": 1,
   "lastCheck": "2026-02-28T00:00:00Z",
   "products": {
@@ -181,12 +266,12 @@ The `init` command reads this field and groups skills by shared version + name p
 
 ### GitHub Action
 
-Add `skill-versions` as a reusable action in your workflow:
+Add `skillsafe` as a reusable action in your workflow:
 
 ```yaml
-- uses: voodootikigod/skill-versions@v1
+- uses: voodootikigod/skillsafe@v1
   with:
-    registry: skill-versions.json  # default
+    registry: skillsafe.json  # default
     open-issues: "true"            # create/update issue on staleness
     fail-on-stale: "false"         # set "true" to block PRs
 ```
@@ -197,7 +282,7 @@ The action requires `issues: write` permission when `open-issues` is enabled.
 
 | Input | Default | Description |
 |-------|---------|-------------|
-| `registry` | `skill-versions.json` | Path to registry file |
+| `registry` | `skillsafe.json` | Path to registry file |
 | `node-version` | `22` | Node.js version |
 | `open-issues` | `true` | Open/update GitHub issue on staleness |
 | `issue-label` | `skill-staleness` | Label for issue deduplication |
@@ -230,7 +315,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: voodootikigod/skill-versions@v1
+      - uses: voodootikigod/skillsafe@v1
         with:
           fail-on-stale: "false"
 ```
@@ -238,7 +323,7 @@ jobs:
 #### PR gate example
 
 ```yaml
-- uses: voodootikigod/skill-versions@v1
+- uses: voodootikigod/skillsafe@v1
   with:
     open-issues: "false"
     fail-on-stale: "true"
@@ -258,13 +343,26 @@ For simpler setups, use the CLI directly:
 
 ```yaml
 - name: Check skill freshness
-  run: npx skill-versions check --ci
+  run: npx skillsafe check --ci
 ```
+
+## Roadmap
+
+Future commands planned for skillsafe:
+
+| Command | Purpose |
+|---------|---------|
+| ~~`audit`~~ | ~~Security & quality audit for skill files~~ **Shipped!** |
+| `budget` | Context budget analysis and optimization |
+| `verify` | Verify skill integrity and correctness |
+| `test` | Run skill test suites |
+| `policy` | Enforce organizational skill policies |
+| `lint` | Lint skill files for best practices |
 
 ## Complementary Tools
 
 - [`npx skills`](https://skills.sh) — registry + installer for Agent Skills
-- `skill-versions` — freshness checker (this tool)
+- `skillsafe` — quality & integrity layer (this tool)
 - [`skills`](https://github.com/anthropics/skills) — official Agent Skills reference
 
 ## License

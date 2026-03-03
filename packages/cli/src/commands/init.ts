@@ -58,11 +58,11 @@ function autoDetect(productKey: string): { displayName: string; package: string 
 }
 
 /**
- * Initialize a skill-versions.json registry by scanning a skills directory.
+ * Initialize a skillsafe.json registry by scanning a skills directory.
  */
 export async function initCommand(dir: string, options: InitOptions): Promise<number> {
 	console.log();
-	console.log(chalk.bold("skill-versions init"));
+	console.log(chalk.bold("skillsafe init"));
 	console.log("=".repeat(50));
 	console.log();
 	console.log(`Scanning ${chalk.cyan(dir)} for SKILL.md files...`);
@@ -208,7 +208,7 @@ export async function initCommand(dir: string, options: InitOptions): Promise<nu
 	}
 
 	const registry: Registry = {
-		$schema: "https://skill-versions.com/schema.json",
+		$schema: "https://skillsafe.sh/schema.json",
 		version: 1,
 		lastCheck: now,
 		products,
@@ -218,7 +218,7 @@ export async function initCommand(dir: string, options: InitOptions): Promise<nu
 
 	console.log();
 	console.log(chalk.green(`Created ${outputPath} with ${productCount} products.`));
-	console.log(chalk.dim('Run "skill-versions check" to check for updates.'));
+	console.log(chalk.dim('Run "skillsafe check" to check for updates.'));
 	console.log();
 
 	return 0;

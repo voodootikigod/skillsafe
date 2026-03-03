@@ -7,13 +7,13 @@ import { Quickstart } from "@/components/quickstart";
 const jsonLd = {
 	"@context": "https://schema.org",
 	"@type": "SoftwareApplication",
-	name: "skill-versions",
+	name: "skillsafe",
 	applicationCategory: "DeveloperApplication",
 	operatingSystem: "Any",
 	description:
-		"Freshness checker for AI Agent Skills — like npm outdated for skill knowledge. Scan SKILL.md files, detect stale product-versions, and generate staleness reports.",
-	url: "https://skill-versions.com",
-	downloadUrl: "https://www.npmjs.com/package/skill-versions",
+		"Quality & integrity layer for AI Agent Skills — like npm outdated for skill knowledge. Scan SKILL.md files, detect stale product-versions, and generate staleness reports.",
+	url: "https://skillsafe.sh",
+	downloadUrl: "https://www.npmjs.com/package/skillsafe",
 	softwareVersion: "1.0.0",
 	author: {
 		"@type": "Person",
