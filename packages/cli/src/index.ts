@@ -1,6 +1,7 @@
 import { createRequire } from "node:module";
 import { Command } from "commander";
 import { auditCommand } from "./commands/audit.js";
+import { budgetCommand } from "./commands/budget.js";
 import { checkCommand } from "./commands/check.js";
 import { initCommand } from "./commands/init.js";
 import { refreshCommand } from "./commands/refresh.js";
@@ -90,6 +91,31 @@ program
 	.action(async (dir, options) => {
 		try {
 			const code = await auditCommand(dir, options);
+			process.exit(code);
+		} catch (error) {
+			console.error(`Error: ${error instanceof Error ? error.message : String(error)}`);
+			process.exit(2);
+		}
+	});
+
+program
+	.command("budget")
+	.description("Measure token cost and detect redundancy in skill files")
+	.argument("[dir]", "directory to analyze", ".")
+	.option("-s, --skill <name>", "analyze a specific skill by name")
+	.option("-d, --detailed", "show per-section token breakdown")
+	.option("-f, --format <type>", "output format: terminal, json, or markdown", "terminal")
+	.option("-o, --output <path>", "write report to file")
+	.option("--max-tokens <n>", "exit code 1 if total exceeds this threshold")
+	.option("--save <path>", "save a snapshot for later comparison")
+	.option("--compare <path>", "compare current budget against a saved snapshot")
+	.option(
+		"--model <name>",
+		"model for cost estimation: claude-opus, claude-sonnet, claude-haiku, gpt-4o",
+	)
+	.action(async (dir, options) => {
+		try {
+			const code = await budgetCommand(dir, options);
 			process.exit(code);
 		} catch (error) {
 			console.error(`Error: ${error instanceof Error ? error.message : String(error)}`);
