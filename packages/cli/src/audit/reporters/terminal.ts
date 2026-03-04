@@ -56,6 +56,16 @@ export function formatTerminal(report: AuditReport): string {
 	// Group findings by file
 	const grouped = groupByFile(report.findings);
 
+	// Build a map of registry audits by file for quick lookup
+	const registryAuditsByFile = new Map<string, NonNullable<typeof report.registryAudits>[number]>();
+	if (report.registryAudits) {
+		for (const ra of report.registryAudits) {
+			registryAuditsByFile.set(ra.file, ra);
+		}
+	}
+
+	let hasInjectionOrCommandFindings = false;
+
 	for (const [file, findings] of grouped) {
 		lines.push(chalk.bold.underline(file));
 		lines.push("");
@@ -80,7 +90,28 @@ export function formatTerminal(report: AuditReport): string {
 			if (f.evidence) {
 				lines.push(`    ${chalk.dim(f.evidence)}`);
 			}
+
+			if (f.category === "prompt-injection" || f.category === "dangerous-command") {
+				hasInjectionOrCommandFindings = true;
+			}
 		}
+
+		// Show registry audit info for this file if available
+		const ra = registryAuditsByFile.get(file);
+		if (ra && ra.entries.length > 0) {
+			lines.push("");
+			lines.push(`  ${chalk.cyan.bold("skills.sh security:")}`);
+			for (const entry of ra.entries) {
+				const statusColor =
+					entry.status === "safe" || entry.status === "pass" || entry.status === "clean"
+						? chalk.green
+						: chalk.yellow;
+				lines.push(
+					`    ${chalk.dim(entry.auditor.padEnd(8))} ${statusColor(entry.status)}${entry.riskLevel ? chalk.dim(` (${entry.riskLevel})`) : ""}`,
+				);
+			}
+		}
+
 		lines.push("");
 	}
 
@@ -96,6 +127,17 @@ export function formatTerminal(report: AuditReport): string {
 	lines.push("");
 	lines.push(`  ${report.files} file(s) scanned`);
 	lines.push("");
+
+	// Tip footer when registry audits are not included but injection/command findings exist
+	if (
+		hasInjectionOrCommandFindings &&
+		(!report.registryAudits || report.registryAudits.length === 0)
+	) {
+		lines.push(
+			chalk.dim("Tip: Run with --include-registry-audits for Snyk/Socket/Gen security analysis."),
+		);
+		lines.push("");
+	}
 
 	return lines.join("\n");
 }

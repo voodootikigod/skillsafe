@@ -128,4 +128,49 @@ describe("formatSarif", () => {
 		const parsed = JSON.parse(formatSarif(report));
 		expect(parsed.runs[0].invocations[0].endTimeUtc).toBe("2026-03-03T12:00:00.000Z");
 	});
+
+	it("adds additional runs for registry audit findings", () => {
+		const report = makeReport({
+			findings: [
+				{
+					file: "test.md",
+					line: 0,
+					severity: "critical",
+					category: "registry-audit",
+					message: "snyk: alert — Found injection patterns",
+					evidence: "risk=high, alerts=3",
+				},
+				{
+					file: "test.md",
+					line: 0,
+					severity: "low",
+					category: "registry-audit",
+					message: "socket: info — Low risk",
+					evidence: "risk=low, alerts=1",
+				},
+			],
+			summary: { critical: 1, high: 0, medium: 0, low: 1, total: 2 },
+			registryAudits: [
+				{
+					skillName: "test",
+					file: "test.md",
+					entries: [
+						{ auditor: "snyk", status: "alert", riskLevel: "high", alertCount: 3 },
+						{ auditor: "socket", status: "info", riskLevel: "low", alertCount: 1 },
+					],
+				},
+			],
+		});
+
+		const parsed = JSON.parse(formatSarif(report));
+		// Should have the main skillsafe run + additional runs for each auditor
+		expect(parsed.runs.length).toBeGreaterThan(1);
+
+		const auditorRuns = parsed.runs.slice(1);
+		const auditorNames = auditorRuns.map(
+			(r: { tool: { driver: { name: string } } }) => r.tool.driver.name,
+		);
+		expect(auditorNames).toContain("skills.sh/snyk");
+		expect(auditorNames).toContain("skills.sh/socket");
+	});
 });

@@ -60,5 +60,25 @@ export function formatMarkdown(report: AuditReport): string {
 		lines.push("");
 	}
 
+	// Registry Security Audits section
+	if (report.registryAudits && report.registryAudits.length > 0) {
+		lines.push("## Registry Security Audits");
+		lines.push("");
+		lines.push("| Skill | Snyk | Socket | Gen |");
+		lines.push("|-------|------|--------|-----|");
+
+		for (const ra of report.registryAudits) {
+			const snyk = ra.entries.find((e) => e.auditor === "snyk");
+			const socket = ra.entries.find((e) => e.auditor === "socket");
+			const gen = ra.entries.find((e) => e.auditor === "gen");
+
+			lines.push(
+				`| ${ra.skillName} | ${snyk?.status ?? "—"} | ${socket?.status ?? "—"} | ${gen?.status ?? "—"} |`,
+			);
+		}
+
+		lines.push("");
+	}
+
 	return lines.join("\n");
 }

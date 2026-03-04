@@ -4,9 +4,77 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Project Is
 
-`skillsafe` is a quality & integrity layer for Agent Skills — like `npm outdated` for skill knowledge. It detects version drift in SKILL.md files (which declare `product-version` in YAML frontmatter) by comparing against the npm registry. The repo also doubles as a reusable GitHub Action (`voodootikigod/skillsafe@v1`).
+`skillsafe` is the quality and integrity layer for Agent Skills. It answers: **"Are my skills correct, safe, current, and efficient?"**
 
-The `audit` command provides security audit & hallucination detection for skill files. Future commands (`budget`, `verify`, `test`, `policy`, `lint`) are planned to expand skillsafe further into a full quality & integrity layer for Agent Skills.
+Agent Skills are SKILL.md files — markdown documents with YAML frontmatter that instruct AI coding agents (Claude Code, Cursor, Codex, etc.) how to work with specific products, frameworks, and patterns. Skills look like documentation but are treated as executable instructions by agents with file system and shell access. This makes skill quality a security and correctness concern, not just a readability one.
+
+skillsafe sits alongside `skills.sh` (which handles installation, discovery, and distribution) as the complementary verification layer. skills.sh installs them, skillsafe keeps them safe. The skills.sh maintainer is a colleague — skillsafe should **leverage and complement** skills.sh, never duplicate or compete with it. The repo also doubles as a reusable GitHub Action (`voodootikigod/skillsafe@v1`).
+
+### Scope: What skillsafe owns
+
+skillsafe focuses on **analyzing, verifying, and maintaining** skills — not distributing them. Capabilities that belong here answer questions like:
+
+- **Is this skill current?** — Version drift detection, staleness checking (`check`, `refresh`)
+- **Is this skill safe?** — Security audit, hallucination detection, prompt injection scanning (`audit`)
+- **Is this skill well-formed?** — Metadata validation, structural linting (`lint`)
+- **Is this skill efficient?** — Context window token cost analysis (`budget`)
+- **Is this skill's version bump honest?** — Content-change-to-version-bump verification (`verify`)
+- **Does this skill still work?** — Eval/test integration for regression detection (`test`)
+- **Does this skill comply with our policies?** — Organizational trust rules and enforcement (`policy`)
+
+### Scope: What skillsafe does NOT own
+
+These capabilities belong to skills.sh, the Agent Skills spec, or registries. skillsafe should integrate with them, not reimplement them:
+
+- **Distribution & installation** — `npx skills add`, registry, CLI → skills.sh
+- **Lockfiles & dependency resolution** — deterministic installs → skills.sh
+- **Deprecation & yanking** — lifecycle state management → skills.sh
+- **Feature flag loading** — context-aware skill section filtering → skills.sh + spec
+- **Dependency groups** — contextual skill loading → skills.sh + spec
+- **Template/parameterized skills** — install-time customization → skills.sh
+- **Private registries** — enterprise distribution → skills.sh
+- **Structured taxonomy/classifiers** — discovery and filtering → skills.sh + spec
+- **Spec editions** — spec versioning mechanism → Agent Skills spec
+
+Where skillsafe *reads* data from these systems (e.g., reading a lockfile to verify integrity, checking deprecation status in a health report), that's fine. Where skillsafe would *manage* that data, defer to skills.sh.
+
+### PRDs and Roadmap
+
+Detailed product requirement documents live in `./prds/`. These cover both features skillsafe will build and proposals to bring to skills.sh and the Agent Skills spec:
+
+| PRD | Builds in skillsafe? | Description |
+|-----|---------------------|-------------|
+| `00-prioritization-and-ownership.md` | — | Master prioritization matrix and ownership map |
+| `01-security-audit.md` | ✅ Yes (shipped) | Hallucination detection, prompt injection, dangerous commands |
+| `02-feature-flags.md` | ❌ Propose to spec + skills.sh | Optional capabilities within skills for context window economics |
+| `03-skill-testing.md` | 🔶 Partial — skillsafe owns test runner | Eval integration; spec convention + skillsafe execution + skills.sh could surface test status |
+| `04-context-budget.md` | ✅ Yes | Token cost analysis, redundancy detection |
+| `05-semver-verification.md` | ✅ Yes | Content-change-to-version-bump validation |
+| `06-lockfiles.md` | ❌ Propose to skills.sh | Deterministic installs; skillsafe can read but not manage |
+| `07-policy-enforcement.md` | ✅ Yes | Organizational trust rules via `.skill-policy.yml` |
+| `08-deprecation-yanking.md` | ❌ Propose to skills.sh | Lifecycle state; skillsafe reports status in `check` output |
+| `09-dependency-groups.md` | ❌ Propose to spec + skills.sh | Contextual loading; skillsafe's `budget` can report per-group costs |
+| `10-mandatory-metadata.md` | 🔶 Partial — skillsafe owns local lint | skills.sh enforces on publish; skillsafe lints locally with auto-fix |
+| `11-template-skills.md` | ❌ Propose to skills.sh | Install-time parameterization |
+| `12-spec-editions.md` | ❌ Propose to spec | Spec versioning mechanism |
+| `13-structured-taxonomy.md` | ❌ Propose to spec + skills.sh | Classifier vocabulary for discovery |
+
+When implementing features, always check the relevant PRD first. When a PRD is tagged "Propose to skills.sh", the deliverable is a written proposal or PR to the skills.sh repo — not code in this repo.
+
+### Current vs. Planned Commands
+
+| Command | Status | What It Does |
+|---------|--------|-------------|
+| `check` | ✅ Shipped | Detect version drift in skills by comparing `product-version` frontmatter against npm registry |
+| `report` | ✅ Shipped | Generate a formatted report of check results |
+| `refresh` | ✅ Shipped | AI-assisted update of stale skill files using LLMs (Anthropic, OpenAI, Google) |
+| `audit` | ✅ Shipped | Security scan: hallucinated packages, prompt injection, dangerous commands, dead URLs, metadata gaps |
+| `init` | ✅ Shipped | Initialize a `skillsafe.json` registry file for a project |
+| `lint` | 🔜 Planned | Validate metadata completeness, feature flag consistency, structural quality (extends audit's metadata checker into a standalone command with auto-fix) |
+| `budget` | 🔜 Planned | Token cost analysis per skill, redundancy detection between skills, per-feature-flag cost breakdown. Novel — no equivalent in any package ecosystem |
+| `verify` | 🔜 Planned | Validate that content changes between skill versions match the declared semver bump (heuristic + LLM-assisted, like cargo semver-checks for knowledge) |
+| `test` | 🔜 Planned | Run eval test suites declared in a skill's `tests/` directory against an agent harness. Regression detection after `refresh`. Integrates with OpenAI eval-skills, Anthropic evals, and Vercel agent-eval patterns |
+| `policy` | 🔜 Planned | Enforce organizational rules: trusted sources, banned patterns, required metadata, staleness limits, audit cleanliness. Policy-as-code via `.skill-policy.yml` |
 
 ## Monorepo Structure
 
@@ -15,7 +83,7 @@ npm workspaces monorepo with three packages orchestrated by Turborepo:
 | Package | Published As | Purpose |
 |---------|-------------|---------|
 | `packages/schema` | `@skillsafe/schema` | TypeScript types + generated JSON Schema for the registry format |
-| `packages/cli` | `skillsafe` (npm) | CLI tool with 5 commands: `init`, `check`, `report`, `refresh`, `audit` |
+| `packages/cli` | `skillsafe` (npm) | CLI tool — current: `init`, `check`, `report`, `refresh`, `audit` |
 | `packages/web` | Private (Vercel) | Next.js 16 marketing/docs site at skillsafe.sh |
 
 **Build order matters**: `schema` must build first (produces `dist/schema.json` and type declarations), then `cli` and `web` consume it. Turbo handles this via `"dependsOn": ["^build"]`.
@@ -46,6 +114,7 @@ npm run typecheck
 
 # Run CLI during development
 cd packages/cli && npx tsx src/index.ts check
+cd packages/cli && npx tsx src/index.ts audit [path]
 
 # Dev server for web
 cd packages/web && npm run dev
@@ -60,9 +129,15 @@ cd packages/web && npm run dev
 
 ## Architecture Notes
 
-**CLI (`packages/cli`)**: Commander.js entry point in `src/index.ts`. Each command lives in `src/commands/`. The `refresh` command uses Vercel AI SDK (`ai` package) with optional provider SDKs (`@ai-sdk/anthropic`, `@ai-sdk/openai`, `@ai-sdk/google`) to propose LLM-powered updates to stale skill files. LLM logic is isolated in `src/llm/`.
+### CLI (`packages/cli`)
 
-**Audit (`packages/cli/src/audit/`)**: Security audit pipeline with a modular extractor/checker architecture. No new dependencies — uses built-in `fetch` for PyPI/crates.io and existing `fetchLatestVersion()` for npm.
+Commander.js entry point in `src/index.ts`. Each command lives in `src/commands/`. The `refresh` command uses Vercel AI SDK (`ai` package) with optional provider SDKs (`@ai-sdk/anthropic`, `@ai-sdk/openai`, `@ai-sdk/google`) to propose LLM-powered updates to stale skill files. LLM logic is isolated in `src/llm/`.
+
+### Audit (`packages/cli/src/audit/`)
+
+Integrity and quality audit pipeline with a modular extractor/checker architecture. No new dependencies — uses built-in `fetch` for PyPI/crates.io and existing `fetchLatestVersion()` for npm.
+
+**Important context:** skills.sh now integrates Snyk, Socket, and Gen as independent security auditors at submission and install time. Snyk uses LLM-based intent analysis for prompt injection/malware detection and has publicly criticized regex-based scanners as insufficient. skillsafe's unique audit value is in areas these scanners don't cover: **hallucinated package detection** (do referenced packages exist?), **URL liveness** (did links rot?), and **metadata completeness** (can other skillsafe commands function?). The regex-based injection and command checkers (`injection.ts`, `commands.ts`) are useful as fast local checks during development but should not be positioned as comprehensive security scanning. See `./prds/01-security-audit.md` for the full landscape analysis and v2 evolution plan.
 
 ```
 audit/
@@ -90,15 +165,61 @@ audit/
 
 Key design: extractors run once per file, checkers consume extracted data. Findings pass through `.skillsafeignore` + inline comment filtering. Registry lookups use layered caching (in-memory Map + disk with TTL).
 
-**Schema (`packages/schema`)**: Pure types in `src/types.ts`. The `build` script runs `tsup` then `tsx src/generate.ts` to produce a JSON Schema artifact (`dist/schema.json`) from TypeScript types via `ts-json-schema-generator`.
+**This extractor/checker/reporter pattern is the template for all future commands.** New commands (budget, verify, test, policy, lint) should follow the same architecture: parse SKILL.md → extract relevant data → run checks → filter → report. Reuse extractors and reporters across commands where possible.
 
-**Web (`packages/web`)**: Next.js App Router with CSS Modules. The `prebuild` script copies `schema/dist/schema.json` into `public/` so it's served at `/schema.json`. Components are in `components/` with colocated `.module.css` files.
+### Schema (`packages/schema`)
 
-**Registry file (`skillsafe.json`)**: Maps product names to npm packages, tracks verified versions, and lists associated skill/agent files. Validated by `src/registry.ts`.
+Pure types in `src/types.ts`. The `build` script runs `tsup` then `tsx src/generate.ts` to produce a JSON Schema artifact (`dist/schema.json`) from TypeScript types via `ts-json-schema-generator`.
+
+### Web (`packages/web`)
+
+Next.js App Router with CSS Modules. The `prebuild` script copies `schema/dist/schema.json` into `public/` so it's served at `/schema.json`. Components are in `components/` with colocated `.module.css` files.
+
+### Registry file (`skillsafe.json`)
+
+Maps product names to npm packages, tracks verified versions, and lists associated skill/agent files. Validated by `src/registry.ts`.
+
+## Architectural Principles for New Commands
+
+When implementing planned commands, follow these principles established by the existing codebase:
+
+1. **No unnecessary new dependencies.** The audit command was built with zero new deps — use built-in `fetch`, existing utilities, and the Vercel AI SDK (already installed) for any LLM-assisted features. Only add a dependency if there's no reasonable alternative.
+
+2. **Extractor/checker separation.** Extract data from SKILL.md once (parsing, regex extraction, frontmatter reading), then pass extracted data to multiple independent checkers. This avoids redundant parsing and makes checkers testable in isolation.
+
+3. **Layered caching.** Network-dependent operations (registry lookups, URL checks) should use the existing cache infrastructure in `src/audit/cache.ts` — in-memory Map for deduplication within a run, persistent disk cache with TTL for across runs. Store cache in `~/.cache/skillsafe/`.
+
+4. **Reporter reuse.** Terminal, JSON, Markdown, and SARIF reporters already exist. New commands should output through the same reporter interface where possible, extending it only for command-specific needs.
+
+5. **Graceful degradation.** Commands should work without network access (skipping network-dependent checks with warnings), without LLM API keys (skipping AI-assisted features), and without optional config files (using sensible defaults).
+
+6. **CI-first.** Every command should support `--json` for machine-readable output, `--ci` for strict exit codes (non-zero on findings above threshold), and `--fail-on <severity>` for configurable thresholds.
+
+## Ecosystem Context & Collaboration Model
+
+skillsafe operates within the broader Agent Skills ecosystem. The relationship with skills.sh is collaborative — the maintainer is a colleague. Design decisions should always ask: "Does this belong in skillsafe, or should we propose it to skills.sh?"
+
+- **skills.sh** (Vercel) — The primary registry and CLI for installing skills (`npx skills add`). skillsafe complements but never duplicates its functionality. Distribution, installation, loading, and lifecycle management are skills.sh concerns. When skillsafe needs to understand installed skills (e.g., for `budget` or `policy`), it should read skills.sh's artifacts (installed skill directories, any future lockfile) rather than maintaining a parallel tracking system.
+- **Agent Skills Spec** (agentskills.io) — Defines the SKILL.md format. skillsafe validates compliance with this spec. Proposals for spec extensions (feature flags, test conventions, product-version, classifiers) should be tracked as issues in this repo and brought to the spec maintainers as formal proposals.
+- **Agent harnesses** — Claude Code, Cursor, Codex, etc. load skills into LLM context. skillsafe's `budget` command measures the token cost of this loading. The `test` command will need to execute prompts through these harnesses.
+- **npm registry** — The source of truth for product versions. skillsafe's `check` command queries npm to detect version drift. Future npm-native skill distribution (skillpm, skills-npm) may change how skills are versioned.
+
+### Integration points with skills.sh
+
+Where skillsafe naturally connects to skills.sh (current or future):
+
+- `skillsafe audit` could run as a pre-install hook in skills.sh
+- `skillsafe check` results could surface in `npx skills status`
+- `skillsafe budget` per-group reports depend on skills.sh's dependency group resolution
+- `skillsafe policy` source allow/deny lists reference skills.sh registry sources
+- skills.sh deprecation/yank status could feed into `skillsafe check` health reports
+- skills.sh lockfile (if implemented) could feed into `skillsafe verify` for precise diffing
 
 ## Testing
 
 Tests are only in `packages/cli/src/` (colocated with source files). Vitest with no config file — uses defaults. No coverage thresholds configured.
+
+When writing tests for new commands, follow the audit test patterns: mock all network-dependent modules, use fixture SKILL.md files with known content, and test the orchestrator, individual checkers, and reporters independently.
 
 ## Deployment
 
@@ -110,10 +231,11 @@ Tests are only in `packages/cli/src/` (colocated with source files). Vitest with
 
 When adding or updating features, always update **all three surfaces**:
 
-1. **Code** — implement in the appropriate package(s)
+1. **Code** — implement in the appropriate package(s), following extractor/checker/reporter pattern
 2. **README.md** — update CLI reference, registry format, examples as needed
-3. **CLAUDE.md** — keep architecture notes, commands, and structure current
+3. **CLAUDE.md** — keep architecture notes, commands table, and structure current
 4. **Web (`packages/web`)** — update the marketing/docs site to reflect new capabilities
+5. **Tests** — colocated with source files, mock all network calls, test checkers independently
 
 ## Development Pitfalls
 
@@ -130,6 +252,10 @@ Lessons learned from building features in this codebase:
 **Biome formatting after multi-line edits.** Always run `npx biome check --write` on changed files before committing — line-length wrapping rules are hard to predict for template literals and chained method calls.
 
 **Mock all network-dependent modules in integration tests.** For tests that exercise the orchestrator (`runAudit`), mock every checker that makes network calls (`registry`, `urls`, `advisory`) to avoid flaky tests and slow runs.
+
+**Token counting for budget command.** When implementing `budget`, use `js-tiktoken` with `cl100k_base` encoding. Do not add `tiktoken` (native bindings) — the JS port avoids platform-specific build issues. Token counts will be approximate across model families but within 5% is acceptable.
+
+**LLM-assisted features should always have a non-LLM fallback.** The `verify` and `test` commands will use LLMs for semantic analysis, but must also work (with reduced capability) using only heuristic/deterministic checks when no API key is configured. Gate LLM features behind the existing provider detection in `src/llm/`.
 
 ## Node Version
 

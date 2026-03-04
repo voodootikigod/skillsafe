@@ -8,7 +8,8 @@ export type AuditCategory =
 	| "dangerous-command"
 	| "metadata-incomplete"
 	| "url-liveness"
-	| "advisory-match";
+	| "advisory-match"
+	| "registry-audit";
 
 export interface AuditFinding {
 	file: string;
@@ -17,6 +18,7 @@ export interface AuditFinding {
 	category: AuditCategory;
 	message: string;
 	evidence: string;
+	note?: string;
 }
 
 export interface AuditSummary {
@@ -27,11 +29,27 @@ export interface AuditSummary {
 	total: number;
 }
 
+export interface RegistryAuditEntry {
+	auditor: "snyk" | "socket" | "gen";
+	status: string;
+	riskLevel?: string;
+	alertCount?: number;
+	details?: string;
+}
+
+export interface RegistryAuditResult {
+	skillName: string;
+	file: string;
+	entries: RegistryAuditEntry[];
+	raw?: unknown;
+}
+
 export interface AuditReport {
 	files: number;
 	findings: AuditFinding[];
 	summary: AuditSummary;
 	generatedAt: string;
+	registryAudits?: RegistryAuditResult[];
 }
 
 export interface ExtractedPackage {
@@ -71,4 +89,6 @@ export interface AuditOptions {
 	packagesOnly?: boolean;
 	skipUrls?: boolean;
 	ignorePath?: string;
+	uniqueOnly?: boolean;
+	includeRegistryAudits?: boolean;
 }

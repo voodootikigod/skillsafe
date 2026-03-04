@@ -77,4 +77,80 @@ describe("formatTerminal", () => {
 		const output = formatTerminal(makeReport({ files: 5 }));
 		expect(output).toContain("5 file(s) scanned");
 	});
+
+	it("shows tip footer when injection/command findings present without registry audits", () => {
+		const report = makeReport({
+			findings: [
+				{
+					file: "test.md",
+					line: 1,
+					severity: "medium",
+					category: "prompt-injection",
+					message: "Override detected",
+					evidence: "ignore previous",
+				},
+			],
+			summary: { critical: 0, high: 0, medium: 1, low: 0, total: 1 },
+		});
+
+		const output = formatTerminal(report);
+		expect(output).toContain("--include-registry-audits");
+	});
+
+	it("does not show tip footer when registry audits are present", () => {
+		const report = makeReport({
+			findings: [
+				{
+					file: "test.md",
+					line: 1,
+					severity: "medium",
+					category: "prompt-injection",
+					message: "Override detected",
+					evidence: "ignore previous",
+				},
+			],
+			summary: { critical: 0, high: 0, medium: 1, low: 0, total: 1 },
+			registryAudits: [
+				{
+					skillName: "test",
+					file: "test.md",
+					entries: [{ auditor: "snyk", status: "safe" }],
+				},
+			],
+		});
+
+		const output = formatTerminal(report);
+		expect(output).not.toContain("--include-registry-audits");
+	});
+
+	it("shows skills.sh security section when registry audits are present", () => {
+		const report = makeReport({
+			findings: [
+				{
+					file: "test.md",
+					line: 1,
+					severity: "medium",
+					category: "metadata-incomplete",
+					message: "Missing field",
+					evidence: "",
+				},
+			],
+			summary: { critical: 0, high: 0, medium: 1, low: 0, total: 1 },
+			registryAudits: [
+				{
+					skillName: "test",
+					file: "test.md",
+					entries: [
+						{ auditor: "snyk", status: "safe", riskLevel: "none" },
+						{ auditor: "socket", status: "alert", riskLevel: "medium" },
+					],
+				},
+			],
+		});
+
+		const output = formatTerminal(report);
+		expect(output).toContain("skills.sh security:");
+		expect(output).toContain("snyk");
+		expect(output).toContain("socket");
+	});
 });

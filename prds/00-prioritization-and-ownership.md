@@ -99,25 +99,27 @@ Known patterns that are important for a mature ecosystem but aren't urgent block
 
 ## What Lives in skillsafe vs. skills.sh
 
-### skillsafe Expands Into: "The Quality & Integrity Layer"
+The skills.sh maintainer is a colleague/co-worker. skillsafe should **leverage and complement** skills.sh, never duplicate or compete with it. PRDs tagged as "propose to skills.sh" are written proposals or PRs to bring to that maintainer — not features to build in skillsafe.
 
-skillsafe is naturally evolving from "check if skills are outdated" into the broader tool that answers: **"Are my skills correct, safe, current, and efficient?"**
+### skillsafe: "The Quality & Integrity Layer"
 
-Items that fit:
-- ✅ Version checking (already built)
-- ✅ AI-assisted refresh (already built)
-- Security audit & hallucination detection
+skillsafe answers: **"Are my skills correct, safe, current, and efficient?"**
+
+Build in skillsafe:
+- ✅ Version checking (shipped)
+- ✅ AI-assisted refresh (shipped)
+- ✅ Security audit & hallucination detection (shipped)
 - Context budget analysis
 - Semver verification / knowledge diff analysis
 - Policy enforcement (organizational rules)
-- Mandatory metadata linting/validation
+- Mandatory metadata linting/validation (local lint side)
 - Skill testing integration (run evals after refresh)
 
-### skills.sh Owns: "The Distribution & Lifecycle Layer"
+### skills.sh: "The Distribution & Lifecycle Layer"
 
-skills.sh is the registry and CLI — it answers: **"How do I find, install, update, and manage skills?"**
+skills.sh answers: **"How do I find, install, update, and manage skills?"**
 
-Items that fit:
+Propose to skills.sh (don't build in skillsafe):
 - Lockfiles
 - Deprecation & yanking
 - Feature flag resolution at install/load time
@@ -131,13 +133,22 @@ Items that fit:
 
 ### The Spec Governs: "The Contract"
 
-The Agent Skills spec defines what every tool agrees on:
+Propose to the Agent Skills spec (agentskills.io):
 - Feature flags declaration format
 - Skill testing convention (where tests live)
 - Dependency group declaration
 - Structured classifier vocabulary
 - Spec edition field
-- product-version field (your proposal)
+- product-version field (proposed)
 - Mandatory vs optional metadata fields
 
-This three-layer split (spec defines the contract, skillsafe verifies compliance, skills.sh handles distribution) is clean and mirrors how Rust works: the language spec defines features, `cargo` handles distribution, and tools like `clippy`/`cargo-deny`/`cargo-semver-checks` handle quality verification.
+### Integration, Not Duplication
+
+This three-layer split (spec defines the contract, skillsafe verifies compliance, skills.sh handles distribution) mirrors how Rust works: the language spec defines features, `cargo` handles distribution, and tools like `clippy`/`cargo-deny`/`cargo-semver-checks` handle quality verification.
+
+Where skillsafe connects to skills.sh:
+- skillsafe reads skills.sh's installed skill directories (don't maintain a parallel inventory)
+- skillsafe could run as a pre-install hook or post-install check in skills.sh
+- skillsafe's `check` output could feed into `npx skills status`
+- skillsafe's `policy` source rules reference skills.sh registry sources
+- skills.sh lifecycle data (deprecation, yank status) feeds into skillsafe's health reports

@@ -16,6 +16,8 @@ interface AuditCommandOptions {
 	ignore?: string;
 	verbose?: boolean;
 	quiet?: boolean;
+	uniqueOnly?: boolean;
+	includeRegistryAudits?: boolean;
 }
 
 const SEVERITY_ORDER: Record<AuditSeverity, number> = {
@@ -49,6 +51,10 @@ export async function auditCommand(dir: string, options: AuditCommandOptions): P
 		console.error(chalk.dim(`Auditing: ${dir}`));
 		console.error(chalk.dim(`Threshold: ${failOn}`));
 		if (options.packagesOnly) console.error(chalk.dim("Mode: packages-only"));
+		if (options.uniqueOnly)
+			console.error(chalk.dim("Mode: unique-only (skipping injection/command checkers)"));
+		if (options.includeRegistryAudits)
+			console.error(chalk.dim("Including skills.sh registry audits"));
 		if (options.skipUrls) console.error(chalk.dim("Skipping URL liveness checks"));
 		if (options.ignore) console.error(chalk.dim(`Ignore file: ${options.ignore}`));
 	}
@@ -60,6 +66,8 @@ export async function auditCommand(dir: string, options: AuditCommandOptions): P
 		packagesOnly: options.packagesOnly,
 		skipUrls: options.skipUrls,
 		ignorePath: options.ignore,
+		uniqueOnly: options.uniqueOnly,
+		includeRegistryAudits: options.includeRegistryAudits,
 	};
 
 	const report = await runAudit([dir], auditOptions);

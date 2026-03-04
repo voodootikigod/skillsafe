@@ -84,4 +84,41 @@ describe("formatMarkdown", () => {
 		const output = formatMarkdown(makeReport({ files: 3 }));
 		expect(output).toContain("Files scanned: 3");
 	});
+
+	it("shows registry security audits section when present", () => {
+		const report = makeReport({
+			findings: [
+				{
+					file: "test.md",
+					line: 1,
+					severity: "medium",
+					category: "metadata-incomplete",
+					message: "Missing field",
+					evidence: "",
+				},
+			],
+			summary: { critical: 0, high: 0, medium: 1, low: 0, total: 1 },
+			registryAudits: [
+				{
+					skillName: "my-skill",
+					file: "test.md",
+					entries: [
+						{ auditor: "snyk", status: "safe" },
+						{ auditor: "socket", status: "alert", riskLevel: "medium" },
+						{ auditor: "gen", status: "clean" },
+					],
+				},
+			],
+		});
+
+		const output = formatMarkdown(report);
+		expect(output).toContain("## Registry Security Audits");
+		expect(output).toContain("| Skill | Snyk | Socket | Gen |");
+		expect(output).toContain("| my-skill | safe | alert | clean |");
+	});
+
+	it("does not show registry audits section when not present", () => {
+		const output = formatMarkdown(makeReport());
+		expect(output).not.toContain("Registry Security Audits");
+	});
 });

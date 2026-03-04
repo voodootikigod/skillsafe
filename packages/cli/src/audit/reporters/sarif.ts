@@ -60,27 +60,62 @@ function buildResults(findings: AuditFinding[]): object[] {
 }
 
 export function formatSarif(report: AuditReport): string {
-	const sarif = {
-		$schema: "https://json.schemastore.org/sarif-2.1.0.json",
-		version: "2.1.0",
-		runs: [
-			{
+	const runs: object[] = [
+		{
+			tool: {
+				driver: {
+					name: "skillsafe",
+					informationUri: "https://skillsafe.sh",
+					rules: buildRules(report.findings),
+				},
+			},
+			results: buildResults(report.findings),
+			invocations: [
+				{
+					executionSuccessful: true,
+					endTimeUtc: report.generatedAt,
+				},
+			],
+		},
+	];
+
+	// Add additional runs for registry auditors
+	if (report.registryAudits && report.registryAudits.length > 0) {
+		const findingsByAuditor = new Map<string, AuditFinding[]>();
+
+		for (const finding of report.findings) {
+			if (finding.category === "registry-audit") {
+				const auditor = finding.message.split(":")[0];
+				const existing = findingsByAuditor.get(auditor) ?? [];
+				existing.push(finding);
+				findingsByAuditor.set(auditor, existing);
+			}
+		}
+
+		for (const [auditor, findings] of findingsByAuditor) {
+			runs.push({
 				tool: {
 					driver: {
-						name: "skillsafe",
-						informationUri: "https://skillsafe.sh",
-						rules: buildRules(report.findings),
+						name: `skills.sh/${auditor}`,
+						informationUri: "https://skills.sh",
+						rules: buildRules(findings),
 					},
 				},
-				results: buildResults(report.findings),
+				results: buildResults(findings),
 				invocations: [
 					{
 						executionSuccessful: true,
 						endTimeUtc: report.generatedAt,
 					},
 				],
-			},
-		],
+			});
+		}
+	}
+
+	const sarif = {
+		$schema: "https://json.schemastore.org/sarif-2.1.0.json",
+		version: "2.1.0",
+		runs,
 	};
 
 	return JSON.stringify(sarif, null, 2);

@@ -79,6 +79,11 @@ program
 	.option("--fail-on <severity>", "exit code 1 threshold: critical, high, medium, low", "high")
 	.option("--packages-only", "only check package registries (fast)")
 	.option("--skip-urls", "skip URL liveness checks")
+	.option(
+		"--unique-only",
+		"skip injection and command checkers (use when Snyk/Socket/Gen cover these)",
+	)
+	.option("--include-registry-audits", "fetch Snyk/Socket/Gen results from skills.sh")
 	.option("--ignore <path>", "path to .skillsafeignore file")
 	.option("--verbose", "show progress and scan details")
 	.option("--quiet", "suppress output, exit code only")

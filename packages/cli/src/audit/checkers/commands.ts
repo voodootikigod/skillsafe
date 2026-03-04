@@ -3,14 +3,14 @@ import type { AuditChecker, AuditFinding, CheckContext } from "../types.js";
 interface CommandPattern {
 	regex: RegExp;
 	message: string;
-	severity: "critical" | "high" | "medium";
+	severity: "critical" | "medium";
 }
 
 const DESTRUCTIVE_PATTERNS: CommandPattern[] = [
 	{
 		regex: /\brm\s+(?:.*\s)?-\w*r\w*f/,
 		message: "Destructive command: rm with recursive force",
-		severity: "high",
+		severity: "medium",
 	},
 	{
 		regex: /\brm\s+-rf\s+[/~]/,
@@ -20,7 +20,7 @@ const DESTRUCTIVE_PATTERNS: CommandPattern[] = [
 	{
 		regex: /\bchmod\s+777\b/,
 		message: "Insecure permissions: chmod 777",
-		severity: "high",
+		severity: "medium",
 	},
 	{
 		regex: /\bchmod\s+666\b/,
@@ -43,12 +43,12 @@ const PIPE_TO_SHELL_PATTERNS: CommandPattern[] = [
 	{
 		regex: /\bcurl\s+.*\|\s*(?:bash|sh|zsh)\b/,
 		message: "Pipe-to-shell: curl output piped to shell",
-		severity: "high",
+		severity: "critical",
 	},
 	{
 		regex: /\bwget\s+.*\|\s*(?:bash|sh|zsh)\b/,
 		message: "Pipe-to-shell: wget output piped to shell",
-		severity: "high",
+		severity: "critical",
 	},
 	{
 		regex: /\bcurl\s+.*\|\s*sudo\s+(?:bash|sh|zsh)\b/,
@@ -91,7 +91,7 @@ const SENSITIVE_ACCESS_PATTERNS: CommandPattern[] = [
 	{
 		regex: /\/etc\/(?:passwd|shadow)\b/,
 		message: "Sensitive path access: system credentials file",
-		severity: "high",
+		severity: "medium",
 	},
 ];
 
@@ -99,12 +99,12 @@ const DOWNLOAD_EXECUTE_PATTERNS: CommandPattern[] = [
 	{
 		regex: /\bcurl\b.*&&\s*(?:chmod\s.*\+x|bash|sh|\.\/)/,
 		message: "Download-and-execute: curl followed by execution",
-		severity: "high",
+		severity: "medium",
 	},
 	{
 		regex: /\bwget\b.*&&\s*(?:chmod\s.*\+x|bash|sh|\.\/)/,
 		message: "Download-and-execute: wget followed by execution",
-		severity: "high",
+		severity: "medium",
 	},
 ];
 

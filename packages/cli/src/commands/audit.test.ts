@@ -137,6 +137,22 @@ describe("auditCommand", () => {
 		);
 	});
 
+	it("passes uniqueOnly option to runAudit", async () => {
+		await auditCommand(".", { uniqueOnly: true });
+		expect(mockedRunAudit).toHaveBeenCalledWith(
+			["."],
+			expect.objectContaining({ uniqueOnly: true }),
+		);
+	});
+
+	it("passes includeRegistryAudits option to runAudit", async () => {
+		await auditCommand(".", { includeRegistryAudits: true });
+		expect(mockedRunAudit).toHaveBeenCalledWith(
+			["."],
+			expect.objectContaining({ includeRegistryAudits: true }),
+		);
+	});
+
 	it("writes report to file with --output", async () => {
 		const outPath = join(tmpdir(), `audit-test-${Date.now()}.json`);
 		await auditCommand(".", { format: "json", output: outPath });

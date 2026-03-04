@@ -4,7 +4,7 @@ import { join } from "node:path";
 
 const DEFAULT_TTL_MS = 60 * 60 * 1000; // 1 hour
 
-function getCacheDir(): string {
+export function getCacheDir(): string {
 	return join(homedir(), ".cache", "skillsafe", "audit");
 }
 
@@ -59,6 +59,42 @@ export async function setCached(ecosystem: string, name: string, value: boolean)
 	try {
 		const path = cacheFilePath(ecosystem, name);
 		const entry: CacheEntry = { value, timestamp: Date.now() };
+		await writeFile(path, JSON.stringify(entry), "utf-8");
+	} catch {
+		// Silently fail — cache is advisory
+	}
+}
+
+interface JsonCacheEntry {
+	data: unknown;
+	timestamp: number;
+}
+
+export async function getJsonCached(
+	ecosystem: string,
+	name: string,
+	ttlMs = DEFAULT_TTL_MS,
+): Promise<unknown | undefined> {
+	try {
+		const path = cacheFilePath(ecosystem, name);
+		const raw = await readFile(path, "utf-8");
+		const entry: JsonCacheEntry = JSON.parse(raw);
+
+		if (Date.now() - entry.timestamp >= ttlMs) {
+			return undefined; // expired
+		}
+
+		return entry.data;
+	} catch {
+		return undefined; // cache miss
+	}
+}
+
+export async function setJsonCached(ecosystem: string, name: string, data: unknown): Promise<void> {
+	await ensureCacheDir();
+	try {
+		const path = cacheFilePath(ecosystem, name);
+		const entry: JsonCacheEntry = { data, timestamp: Date.now() };
 		await writeFile(path, JSON.stringify(entry), "utf-8");
 	} catch {
 		// Silently fail — cache is advisory
