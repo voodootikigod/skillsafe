@@ -47,21 +47,21 @@ Detailed product requirement documents live in `./prds/`. These cover both featu
 | `00-prioritization-and-ownership.md` | — | Master prioritization matrix and ownership map |
 | `01-security-audit.md` | ✅ Yes (shipped) | Hallucination detection, prompt injection, dangerous commands |
 | `02-feature-flags.md` | ❌ Propose to spec + skills.sh | Optional capabilities within skills for context window economics |
-| `03-skill-testing.md` | 🔶 Partial — skillsafe owns test runner | Eval integration; spec convention + skillsafe execution + skills.sh could surface test status |
-| `04-context-budget.md` | ✅ Yes | Token cost analysis, redundancy detection |
-| `05-semver-verification.md` | ✅ Yes | Content-change-to-version-bump validation |
+| `03-skill-testing.md` | ✅ Yes (shipped) | Eval test runner with agent harnesses, graders, baseline tracking |
+| `04-context-budget.md` | ✅ Yes (shipped) | Token cost analysis, redundancy detection |
+| `05-semver-verification.md` | ✅ Yes (shipped) | Content-change-to-version-bump validation |
 | `06-lockfiles.md` | ❌ Propose to skills.sh | Deterministic installs; skillsafe can read but not manage |
-| `07-policy-enforcement.md` | ✅ Yes | Organizational trust rules via `.skill-policy.yml` |
+| `07-policy-enforcement.md` | ✅ Yes (shipped) | Organizational trust rules via `.skill-policy.yml` |
 | `08-deprecation-yanking.md` | ❌ Propose to skills.sh | Lifecycle state; skillsafe reports status in `check` output |
 | `09-dependency-groups.md` | ❌ Propose to spec + skills.sh | Contextual loading; skillsafe's `budget` can report per-group costs |
-| `10-mandatory-metadata.md` | 🔶 Partial — skillsafe owns local lint | skills.sh enforces on publish; skillsafe lints locally with auto-fix |
+| `10-mandatory-metadata.md` | ✅ Yes (shipped) | Local lint with auto-fix; skills.sh enforces on publish |
 | `11-template-skills.md` | ❌ Propose to skills.sh | Install-time parameterization |
 | `12-spec-editions.md` | ❌ Propose to spec | Spec versioning mechanism |
 | `13-structured-taxonomy.md` | ❌ Propose to spec + skills.sh | Classifier vocabulary for discovery |
 
 When implementing features, always check the relevant PRD first. When a PRD is tagged "Propose to skills.sh", the deliverable is a written proposal or PR to the skills.sh repo — not code in this repo.
 
-### Current vs. Planned Commands
+### Commands
 
 | Command | Status | What It Does |
 |---------|--------|-------------|
@@ -70,11 +70,11 @@ When implementing features, always check the relevant PRD first. When a PRD is t
 | `refresh` | ✅ Shipped | AI-assisted update of stale skill files using LLMs (Anthropic, OpenAI, Google) |
 | `audit` | ✅ Shipped | Security scan: hallucinated packages, prompt injection, dangerous commands, dead URLs, metadata gaps |
 | `init` | ✅ Shipped | Initialize a `skillsafe.json` registry file for a project |
-| `lint` | 🔜 Planned | Validate metadata completeness, feature flag consistency, structural quality (extends audit's metadata checker into a standalone command with auto-fix) |
-| `budget` | 🔜 Planned | Token cost analysis per skill, redundancy detection between skills, per-feature-flag cost breakdown. Novel — no equivalent in any package ecosystem |
-| `verify` | 🔜 Planned | Validate that content changes between skill versions match the declared semver bump (heuristic + LLM-assisted, like cargo semver-checks for knowledge) |
-| `test` | 🔜 Planned | Run eval test suites declared in a skill's `tests/` directory against an agent harness. Regression detection after `refresh`. Integrates with OpenAI eval-skills, Anthropic evals, and Vercel agent-eval patterns |
-| `policy` | 🔜 Planned | Enforce organizational rules: trusted sources, banned patterns, required metadata, staleness limits, audit cleanliness. Policy-as-code via `.skill-policy.yml` |
+| `lint` | ✅ Shipped | Validate metadata completeness, structural quality, and format with auto-fix from git context |
+| `budget` | ✅ Shipped | Token cost analysis per skill, redundancy detection between skills, snapshot comparison. Novel — no equivalent in any package ecosystem |
+| `verify` | ✅ Shipped | Validate that content changes between skill versions match the declared semver bump (heuristic + LLM-assisted, like cargo semver-checks for knowledge) |
+| `test` | ✅ Shipped | Run eval test suites declared in a skill's `tests/` directory against an agent harness. Regression detection after `refresh`. Supports Claude Code and generic harnesses |
+| `policy` | ✅ Shipped | Enforce organizational rules: trusted sources, banned patterns, required metadata, staleness limits, audit cleanliness. Policy-as-code via `.skill-policy.yml` |
 
 ## Monorepo Structure
 
@@ -83,7 +83,7 @@ npm workspaces monorepo with three packages orchestrated by Turborepo:
 | Package | Published As | Purpose |
 |---------|-------------|---------|
 | `packages/schema` | `@skillsafe/schema` | TypeScript types + generated JSON Schema for the registry format |
-| `packages/cli` | `skillsafe` (npm) | CLI tool — current: `init`, `check`, `report`, `refresh`, `audit` |
+| `packages/cli` | `skillsafe` (npm) | CLI tool — 10 commands: `init`, `check`, `report`, `refresh`, `audit`, `budget`, `verify`, `lint`, `policy`, `test` |
 | `packages/web` | Private (Vercel) | Next.js 16 marketing/docs site at skillsafe.sh |
 
 **Build order matters**: `schema` must build first (produces `dist/schema.json` and type declarations), then `cli` and `web` consume it. Turbo handles this via `"dependsOn": ["^build"]`.
@@ -131,7 +131,7 @@ cd packages/web && npm run dev
 
 ### CLI (`packages/cli`)
 
-Commander.js entry point in `src/index.ts`. Each command lives in `src/commands/`. The `refresh` command uses Vercel AI SDK (`ai` package) with optional provider SDKs (`@ai-sdk/anthropic`, `@ai-sdk/openai`, `@ai-sdk/google`) to propose LLM-powered updates to stale skill files. LLM logic is isolated in `src/llm/`.
+Commander.js entry point in `src/index.ts`. Each command lives in `src/commands/`. LLM-assisted commands (`refresh`, `verify`, `test`) use Vercel AI SDK (`ai` package) with optional provider SDKs (`@ai-sdk/anthropic`, `@ai-sdk/openai`, `@ai-sdk/google`). LLM logic is isolated in `src/llm/`. All commands follow the extractor/checker/reporter architecture established by `audit`.
 
 ### Audit (`packages/cli/src/audit/`)
 
@@ -165,7 +165,35 @@ audit/
 
 Key design: extractors run once per file, checkers consume extracted data. Findings pass through `.skillsafeignore` + inline comment filtering. Registry lookups use layered caching (in-memory Map + disk with TTL).
 
-**This extractor/checker/reporter pattern is the template for all future commands.** New commands (budget, verify, test, policy, lint) should follow the same architecture: parse SKILL.md → extract relevant data → run checks → filter → report. Reuse extractors and reporters across commands where possible.
+**This extractor/checker/reporter pattern is the template used by all commands.** Each command follows the same architecture: parse SKILL.md → extract relevant data → run checks → filter → report. Extractors and reporters are reused across commands where possible.
+
+### Shared Infrastructure (`packages/cli/src/shared/`)
+
+Reusable modules extracted from `audit/` and used by all commands:
+
+- `discovery.ts` — `discoverSkillFiles()` recursive directory walker for SKILL.md files
+- `sections.ts` — `parseSections(content)` splits markdown into `SkillSection[]` with headings, levels, line numbers
+- `types.ts` — Shared types and re-exports
+
+### Budget (`packages/cli/src/budget/`)
+
+Token cost analysis using `js-tiktoken` with `cl100k_base` encoding. Per-skill and per-section token counts, inter-skill redundancy detection via 4-gram Jaccard similarity, cost estimation across model pricing tiers, and snapshot comparison for tracking budget changes over time.
+
+### Verify (`packages/cli/src/verify/`)
+
+Semver verification using a two-layer classifier: heuristic rules (section diffs, package changes, content similarity) produce confidence-scored signals, then LLM-assisted classification via `generateObject()` refines uncertain cases. Reuses audit extractors for package comparison. Git integration for retrieving previous file versions.
+
+### Lint (`packages/cli/src/lint/`)
+
+Metadata validation with four rule sets: required fields (name, description), publish-ready fields (author, license, repository), conditional fields (product-version when products referenced, agents when agent-specific content), and format validation (semver, SPDX, URLs). Auto-fix populates missing fields from git context. SPDX validation covers 100+ identifiers with OR/AND expressions.
+
+### Policy (`packages/cli/src/policy/`)
+
+Policy-as-code enforcement via `.skill-policy.yml`. Seven validators: source allow/deny with glob matching, required skills verification, banned skills, metadata requirements (reuses lint's SPDX validation), content deny/require patterns with line numbers, freshness/staleness limits, and audit integration (cross-command: runs `runAudit()` when `audit.require_clean` is configured). Policy file discovery walks up directories for monorepo support.
+
+### Testing (`packages/cli/src/testing/`)
+
+Eval test runner with `cases.yaml` declarative test suites. Agent harness abstraction with Claude Code and generic shell implementations. Seven built-in graders: file-exists, command (exit code), contains/not-contains (regex), json-match, package-has, llm-rubric (via Vercel AI SDK with graceful degradation), and custom (dynamic module import). Trial-based execution with configurable pass threshold and flaky test detection. Baseline storage for regression tracking.
 
 ### Schema (`packages/schema`)
 
@@ -179,9 +207,9 @@ Next.js App Router with CSS Modules. The `prebuild` script copies `schema/dist/s
 
 Maps product names to npm packages, tracks verified versions, and lists associated skill/agent files. Validated by `src/registry.ts`.
 
-## Architectural Principles for New Commands
+## Architectural Principles
 
-When implementing planned commands, follow these principles established by the existing codebase:
+These principles govern all commands in the codebase:
 
 1. **No unnecessary new dependencies.** The audit command was built with zero new deps — use built-in `fetch`, existing utilities, and the Vercel AI SDK (already installed) for any LLM-assisted features. Only add a dependency if there's no reasonable alternative.
 
@@ -189,11 +217,11 @@ When implementing planned commands, follow these principles established by the e
 
 3. **Layered caching.** Network-dependent operations (registry lookups, URL checks) should use the existing cache infrastructure in `src/audit/cache.ts` — in-memory Map for deduplication within a run, persistent disk cache with TTL for across runs. Store cache in `~/.cache/skillsafe/`.
 
-4. **Reporter reuse.** Terminal, JSON, Markdown, and SARIF reporters already exist. New commands should output through the same reporter interface where possible, extending it only for command-specific needs.
+4. **Reporter reuse.** Terminal, JSON, Markdown, and SARIF reporters exist. Commands output through the same reporter interface where possible, extending it only for command-specific needs.
 
-5. **Graceful degradation.** Commands should work without network access (skipping network-dependent checks with warnings), without LLM API keys (skipping AI-assisted features), and without optional config files (using sensible defaults).
+5. **Graceful degradation.** Commands work without network access (skipping network-dependent checks with warnings), without LLM API keys (skipping AI-assisted features), and without optional config files (using sensible defaults).
 
-6. **CI-first.** Every command should support `--json` for machine-readable output, `--ci` for strict exit codes (non-zero on findings above threshold), and `--fail-on <severity>` for configurable thresholds.
+6. **CI-first.** Every command supports `--json` for machine-readable output, `--ci` for strict exit codes (non-zero on findings above threshold), and `--fail-on <severity>` for configurable thresholds.
 
 ## Ecosystem Context & Collaboration Model
 
@@ -201,7 +229,7 @@ skillsafe operates within the broader Agent Skills ecosystem. The relationship w
 
 - **skills.sh** (Vercel) — The primary registry and CLI for installing skills (`npx skills add`). skillsafe complements but never duplicates its functionality. Distribution, installation, loading, and lifecycle management are skills.sh concerns. When skillsafe needs to understand installed skills (e.g., for `budget` or `policy`), it should read skills.sh's artifacts (installed skill directories, any future lockfile) rather than maintaining a parallel tracking system.
 - **Agent Skills Spec** (agentskills.io) — Defines the SKILL.md format. skillsafe validates compliance with this spec. Proposals for spec extensions (feature flags, test conventions, product-version, classifiers) should be tracked as issues in this repo and brought to the spec maintainers as formal proposals.
-- **Agent harnesses** — Claude Code, Cursor, Codex, etc. load skills into LLM context. skillsafe's `budget` command measures the token cost of this loading. The `test` command will need to execute prompts through these harnesses.
+- **Agent harnesses** — Claude Code, Cursor, Codex, etc. load skills into LLM context. skillsafe's `budget` command measures the token cost of this loading. The `test` command executes prompts through configurable agent harnesses (Claude Code CLI, generic shell).
 - **npm registry** — The source of truth for product versions. skillsafe's `check` command queries npm to detect version drift. Future npm-native skill distribution (skillpm, skills-npm) may change how skills are versioned.
 
 ### Integration points with skills.sh
@@ -217,15 +245,15 @@ Where skillsafe naturally connects to skills.sh (current or future):
 
 ## Testing
 
-Tests are only in `packages/cli/src/` (colocated with source files). Vitest with no config file — uses defaults. No coverage thresholds configured.
+91 test files with 688 tests in `packages/cli/src/` (colocated with source files). Vitest with no config file — uses defaults. No coverage thresholds configured.
 
-When writing tests for new commands, follow the audit test patterns: mock all network-dependent modules, use fixture SKILL.md files with known content, and test the orchestrator, individual checkers, and reporters independently.
+When writing tests, follow the established patterns: mock all network-dependent modules, use fixture SKILL.md files with known content, and test the orchestrator, individual checkers/validators/graders, and reporters independently.
 
 ## Deployment
 
 - **CLI**: Published to npm via GitHub Actions on release (`publish.yml`), uses `npm publish --provenance`
 - **Web**: Deployed to Vercel at skillsafe.sh
-- **GitHub Action**: Defined in root `action.yml`, runs `npx skillsafe check --json --ci` and optionally upserts a GitHub issue via `.github/scripts/upsert-issue.sh`
+- **GitHub Action**: Defined in root `action.yml`, composite action supporting all 10 commands via `commands` input or individual toggle flags. Backward-compatible — defaults to `check` only. Per-command threshold inputs (e.g., `audit-fail-on`, `budget-max-tokens`). Outputs include `results` JSON with per-command exit codes
 
 ## Feature Development Checklist
 
@@ -253,9 +281,9 @@ Lessons learned from building features in this codebase:
 
 **Mock all network-dependent modules in integration tests.** For tests that exercise the orchestrator (`runAudit`), mock every checker that makes network calls (`registry`, `urls`, `advisory`) to avoid flaky tests and slow runs.
 
-**Token counting for budget command.** When implementing `budget`, use `js-tiktoken` with `cl100k_base` encoding. Do not add `tiktoken` (native bindings) — the JS port avoids platform-specific build issues. Token counts will be approximate across model families but within 5% is acceptable.
+**Token counting uses js-tiktoken.** The `budget` command uses `js-tiktoken` with `cl100k_base` encoding (via lazy initialization in `budget/tokenizer.ts`). Do not add `tiktoken` (native bindings) — the JS port avoids platform-specific build issues. Token counts are approximate across model families but within 5%.
 
-**LLM-assisted features should always have a non-LLM fallback.** The `verify` and `test` commands will use LLMs for semantic analysis, but must also work (with reduced capability) using only heuristic/deterministic checks when no API key is configured. Gate LLM features behind the existing provider detection in `src/llm/`.
+**LLM-assisted features always have a non-LLM fallback.** The `verify` and `test` commands use LLMs for semantic analysis but also work (with reduced capability) using only heuristic/deterministic checks when no API key is configured. LLM features are gated behind `src/llm/providers.ts` detection with dynamic imports and try/catch returning null on failure.
 
 ## Node Version
 

@@ -585,25 +585,23 @@ Your skill content here...`}
 
 						<h3>GitHub Action</h3>
 						<p>
-							Use the reusable GitHub Action to check freshness and optionally open issues when
-							skills drift:
+							The <code>voodootikigod/skillsafe</code> action runs one or more skillsafe commands
+							in your CI pipeline. By default it runs <code>check</code> only
+							(backward-compatible). Enable additional commands via the <code>commands</code>{" "}
+							input or individual toggle flags.
 						</p>
 						<pre>
 							<code>
 								{`- uses: voodootikigod/skillsafe@v1
   with:
-    registry: skillsafe.json  # default
-    open-issues: "true"            # create/update issue on staleness
-    fail-on-stale: "false"         # set "true" to block PRs`}
+    commands: check,audit,lint,budget
+    audit-fail-on: high
+    lint-fail-on: error
+    budget-max-tokens: 50000`}
 							</code>
 						</pre>
-						<p>
-							The action requires <code>issues: write</code> permission when{" "}
-							<code>open-issues</code> is enabled. It deduplicates issues using the{" "}
-							<code>issue-label</code> input (default: <code>skill-staleness</code>).
-						</p>
 
-						<h4>Inputs</h4>
+						<h4>Command Selection</h4>
 						<table>
 							<thead>
 								<tr>
@@ -613,6 +611,170 @@ Your skill content here...`}
 								</tr>
 							</thead>
 							<tbody>
+								<tr>
+									<td>
+										<code>commands</code>
+									</td>
+									<td>
+										<code>&quot;&quot;</code>
+									</td>
+									<td>
+										Comma-separated list (e.g. <code>check,audit,lint</code>). Overrides
+										toggle flags.
+									</td>
+								</tr>
+								<tr>
+									<td>
+										<code>check</code>
+									</td>
+									<td>
+										<code>true</code>
+									</td>
+									<td>Run version drift detection</td>
+								</tr>
+								<tr>
+									<td>
+										<code>audit</code>
+									</td>
+									<td>
+										<code>false</code>
+									</td>
+									<td>Run security &amp; hallucination detection</td>
+								</tr>
+								<tr>
+									<td>
+										<code>lint</code>
+									</td>
+									<td>
+										<code>false</code>
+									</td>
+									<td>Run metadata validation</td>
+								</tr>
+								<tr>
+									<td>
+										<code>budget</code>
+									</td>
+									<td>
+										<code>false</code>
+									</td>
+									<td>Run token cost analysis</td>
+								</tr>
+								<tr>
+									<td>
+										<code>policy</code>
+									</td>
+									<td>
+										<code>false</code>
+									</td>
+									<td>Run policy enforcement</td>
+								</tr>
+								<tr>
+									<td>
+										<code>verify</code>
+									</td>
+									<td>
+										<code>false</code>
+									</td>
+									<td>Run semver bump validation</td>
+								</tr>
+								<tr>
+									<td>
+										<code>test</code>
+									</td>
+									<td>
+										<code>false</code>
+									</td>
+									<td>Run eval test suites</td>
+								</tr>
+							</tbody>
+						</table>
+
+						<h4>Thresholds</h4>
+						<table>
+							<thead>
+								<tr>
+									<th>Input</th>
+									<th>Default</th>
+									<th>Description</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td>
+										<code>audit-fail-on</code>
+									</td>
+									<td>
+										<code>high</code>
+									</td>
+									<td>
+										<code>critical</code>, <code>high</code>, <code>medium</code>,{" "}
+										<code>low</code>
+									</td>
+								</tr>
+								<tr>
+									<td>
+										<code>lint-fail-on</code>
+									</td>
+									<td>
+										<code>error</code>
+									</td>
+									<td>
+										<code>error</code> or <code>warning</code>
+									</td>
+								</tr>
+								<tr>
+									<td>
+										<code>budget-max-tokens</code>
+									</td>
+									<td>
+										<code>&quot;&quot;</code>
+									</td>
+									<td>Token ceiling (empty = no limit)</td>
+								</tr>
+								<tr>
+									<td>
+										<code>policy-file</code>
+									</td>
+									<td>
+										<code>&quot;&quot;</code>
+									</td>
+									<td>
+										Path to <code>.skill-policy.yml</code>
+									</td>
+								</tr>
+								<tr>
+									<td>
+										<code>policy-fail-on</code>
+									</td>
+									<td>
+										<code>blocked</code>
+									</td>
+									<td>
+										<code>blocked</code>, <code>violation</code>, <code>warning</code>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+
+						<h4>Shared &amp; Check-specific Options</h4>
+						<table>
+							<thead>
+								<tr>
+									<th>Input</th>
+									<th>Default</th>
+									<th>Description</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td>
+										<code>skills-dir</code>
+									</td>
+									<td>
+										<code>.</code>
+									</td>
+									<td>Directory containing skill files</td>
+								</tr>
 								<tr>
 									<td>
 										<code>registry</code>
@@ -627,7 +789,7 @@ Your skill content here...`}
 										<code>node-version</code>
 									</td>
 									<td>
-										<code>20</code>
+										<code>22</code>
 									</td>
 									<td>Node.js version</td>
 								</tr>
@@ -698,15 +860,52 @@ Your skill content here...`}
 									<td>
 										<code>report</code>
 									</td>
-									<td>Full markdown report</td>
+									<td>Full markdown report from check</td>
+								</tr>
+								<tr>
+									<td>
+										<code>results</code>
+									</td>
+									<td>
+										JSON with per-command exit codes (e.g.{" "}
+										<code>{"'{\"check\":0,\"audit\":1}'"}</code>)
+									</td>
 								</tr>
 							</tbody>
 						</table>
 
+						<h4>Examples</h4>
+						<pre>
+							<code>
+								{`# Full quality gate
+- uses: voodootikigod/skillsafe@v1
+  with:
+    commands: check,audit,lint,budget
+    audit-fail-on: high
+    lint-fail-on: error
+    budget-max-tokens: 50000
+    fail-on-stale: "true"
+
+# Security-focused PR gate
+- uses: voodootikigod/skillsafe@v1
+  with:
+    commands: audit,lint
+    audit-fail-on: medium
+    open-issues: "false"
+
+# Policy enforcement
+- uses: voodootikigod/skillsafe@v1
+  with:
+    commands: policy
+    policy-file: .skill-policy.yml
+    policy-fail-on: violation`}
+							</code>
+						</pre>
+
 						<h4>Weekly cron example</h4>
 						<pre>
 							<code>
-								{`name: Skill Staleness Check
+								{`name: Skill Quality Check
 on:
   schedule:
     - cron: "0 9 * * 1"   # Monday 09:00 UTC
@@ -717,27 +916,40 @@ permissions:
   issues: write
 
 jobs:
-  staleness:
+  quality:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: voodootikigod/skillsafe@v1
         with:
-          fail-on-stale: "false"`}
+          commands: check,audit,lint,budget
+          audit-fail-on: high
+          budget-max-tokens: 100000`}
 							</code>
 						</pre>
 
-						<h3>Inline check</h3>
+						<h3>Inline CLI</h3>
 						<p>
-							For simpler setups, use the CLI directly with the <code>--ci</code> flag:
+							For simpler setups, run individual commands directly:
 						</p>
 						<pre>
 							<code>
 								{`- name: Check skill freshness
-  run: npx skillsafe check --ci`}
+  run: npx skillsafe check --ci
+
+- name: Audit skill security
+  run: npx skillsafe audit --fail-on high --quiet
+
+- name: Lint skill metadata
+  run: npx skillsafe lint --ci --fail-on error
+
+- name: Check token budget
+  run: npx skillsafe budget --max-tokens 50000
+
+- name: Enforce policy
+  run: npx skillsafe policy check --ci --fail-on violation`}
 							</code>
 						</pre>
-						<p>This exits with code 1 if any skills are stale, failing the pipeline.</p>
 					</section>
 				</article>
 			</main>
