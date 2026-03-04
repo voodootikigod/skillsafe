@@ -60,7 +60,7 @@ async function checkExists(pkg: ExtractedPackage): Promise<boolean> {
 		return diskCached;
 	}
 
-	let exists: boolean;
+	let exists = true;
 	switch (pkg.ecosystem) {
 		case "npm":
 			exists = await checkNpmExists(pkg.name);

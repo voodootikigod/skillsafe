@@ -7,8 +7,6 @@ import type { SkillPolicy } from "./types.js";
  * Uses dynamic import to avoid adding a direct dependency.
  */
 async function loadYaml(): Promise<{ load: (str: string) => unknown }> {
-	// js-yaml is a transitive dep via gray-matter with no @types package needed
-	// @ts-expect-error -- no type declarations for js-yaml, but it's a known API
 	const mod = await import("js-yaml");
 	return (mod.default ?? mod) as { load: (str: string) => unknown };
 }
