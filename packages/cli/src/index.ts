@@ -5,6 +5,7 @@ import { budgetCommand } from "./commands/budget.js";
 import { checkCommand } from "./commands/check.js";
 import { initCommand } from "./commands/init.js";
 import { lintCommand } from "./commands/lint.js";
+import { policyCheckCommand, policyInitCommand, policyValidateCommand } from "./commands/policy.js";
 import { refreshCommand } from "./commands/refresh.js";
 import { reportCommand } from "./commands/report.js";
 import { verifyCommand } from "./commands/verify.js";
@@ -177,6 +178,58 @@ program
 	.action(async (options) => {
 		try {
 			const code = await verifyCommand(options);
+			process.exit(code);
+		} catch (error) {
+			console.error(`Error: ${error instanceof Error ? error.message : String(error)}`);
+			process.exit(2);
+		}
+	});
+
+const policyCmd = program
+	.command("policy")
+	.description("Enforce organizational policy rules for skill files");
+
+policyCmd
+	.command("check")
+	.description("Check all installed skills against policy")
+	.argument("[dir]", "directory to check", ".")
+	.option("--policy <path>", "path to .skill-policy.yml")
+	.option("-s, --skill <name>", "check a specific skill by name")
+	.option("--ci", "strict exit codes")
+	.option("-f, --format <type>", "output format: terminal or json", "terminal")
+	.option("-o, --output <path>", "write report to file")
+	.option("--fail-on <severity>", "exit code 1 threshold: blocked, violation, warning", "blocked")
+	.action(async (dir, options) => {
+		try {
+			const code = await policyCheckCommand(dir, options);
+			process.exit(code);
+		} catch (error) {
+			console.error(`Error: ${error instanceof Error ? error.message : String(error)}`);
+			process.exit(2);
+		}
+	});
+
+policyCmd
+	.command("init")
+	.description("Generate a starter .skill-policy.yml file")
+	.option("-o, --output <path>", "output path for policy file")
+	.action(async (options) => {
+		try {
+			const code = await policyInitCommand(options);
+			process.exit(code);
+		} catch (error) {
+			console.error(`Error: ${error instanceof Error ? error.message : String(error)}`);
+			process.exit(2);
+		}
+	});
+
+policyCmd
+	.command("validate")
+	.description("Validate a .skill-policy.yml file")
+	.option("--policy <path>", "path to .skill-policy.yml")
+	.action(async (options) => {
+		try {
+			const code = await policyValidateCommand(options);
 			process.exit(code);
 		} catch (error) {
 			console.error(`Error: ${error instanceof Error ? error.message : String(error)}`);
