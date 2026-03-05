@@ -1,5 +1,6 @@
 import { readFile, stat } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
+import { isSafeRegex } from "../shared/safe-regex.js";
 import type { SkillPolicy } from "./types.js";
 
 /**
@@ -109,6 +110,11 @@ export function validatePolicy(policy: SkillPolicy): string[] {
 				for (const dp of policy.content.deny_patterns) {
 					try {
 						new RegExp(dp.pattern);
+						if (!isSafeRegex(dp.pattern)) {
+							errors.push(
+								`content.deny_patterns: potentially unsafe regex "${dp.pattern}" (may cause catastrophic backtracking)`
+							);
+						}
 					} catch {
 						errors.push(`content.deny_patterns: invalid regex "${dp.pattern}"`);
 					}
@@ -127,6 +133,11 @@ export function validatePolicy(policy: SkillPolicy): string[] {
 				for (const rp of policy.content.require_patterns) {
 					try {
 						new RegExp(rp.pattern);
+						if (!isSafeRegex(rp.pattern)) {
+							errors.push(
+								`content.require_patterns: potentially unsafe regex "${rp.pattern}" (may cause catastrophic backtracking)`
+							);
+						}
 					} catch {
 						errors.push(`content.require_patterns: invalid regex "${rp.pattern}"`);
 					}

@@ -1,7 +1,8 @@
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
-import type { GraderResult } from "../types.js";
+import { isSafeRegex } from "../../shared/safe-regex.js";
 import { safePath } from "../safe-path.js";
+import type { GraderResult } from "../types.js";
 
 /**
  * Check that a file contains (or does not contain) the given regex patterns.
@@ -30,6 +31,10 @@ export async function gradeContains(
 
 	for (const pattern of patterns) {
 		try {
+			if (!isSafeRegex(pattern)) {
+				failedPatterns.push(`${pattern} (unsafe regex, skipped)`);
+				continue;
+			}
 			const regex = new RegExp(pattern);
 			const matches = regex.test(content);
 
