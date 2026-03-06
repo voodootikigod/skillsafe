@@ -10,6 +10,7 @@ interface Props {
 	params: Promise<{ slug: string }>;
 }
 
+// biome-ignore lint/suspicious/useAwait: Next.js requires async for generateStaticParams
 export async function generateStaticParams() {
 	return commandSlugs.map((slug) => ({ slug }));
 }
@@ -17,7 +18,9 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
 	const { slug } = await params;
 	const cmd = getCommandBySlug(slug);
-	if (!cmd) return {};
+	if (!cmd) {
+		return {};
+	}
 
 	return {
 		title: `${cmd.name} command`,
@@ -31,7 +34,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function CommandPage({ params }: Props) {
 	const { slug } = await params;
 	const cmd = getCommandBySlug(slug);
-	if (!cmd) notFound();
+	if (!cmd) {
+		notFound();
+	}
 
 	return (
 		<>

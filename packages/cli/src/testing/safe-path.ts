@@ -9,9 +9,9 @@ export function safePath(baseDir: string, untrustedPath: string): string {
 	const resolved = resolve(baseDir, untrustedPath);
 	const normalizedBase = resolve(baseDir);
 
-	if (!resolved.startsWith(normalizedBase + "/") && resolved !== normalizedBase) {
+	if (!resolved.startsWith(`${normalizedBase}/`) && resolved !== normalizedBase) {
 		throw new Error(
-			`Path traversal detected: "${untrustedPath}" resolves outside "${normalizedBase}"`,
+			`Path traversal detected: "${untrustedPath}" resolves outside "${normalizedBase}"`
 		);
 	}
 

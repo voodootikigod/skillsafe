@@ -188,8 +188,8 @@
 }
 
 .navLinks {
-	margin-top: 48px;
 	padding-top: 24px;
+	margin-top: 48px;
 	font-size: 15px;
 	border-top: 1px solid var(--border);
 }

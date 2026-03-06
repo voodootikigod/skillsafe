@@ -1,7 +1,6 @@
 import { cp, mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
-import { safePath } from "./safe-path.js";
 import { gradeCommand } from "./graders/command.js";
 import { gradeContains } from "./graders/contains.js";
 import { gradeCustom } from "./graders/custom.js";
@@ -10,6 +9,7 @@ import { gradeJsonMatch } from "./graders/json-match.js";
 import { gradeLlmRubric } from "./graders/llm-rubric.js";
 import { gradePackageHas } from "./graders/package-has.js";
 import type { AgentHarness } from "./harness/interface.js";
+import { safePath } from "./safe-path.js";
 import type { CaseResult, GraderConfig, GraderResult, TestCase, TrialResult } from "./types.js";
 
 export interface RunCaseOptions {

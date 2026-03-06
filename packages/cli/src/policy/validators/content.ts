@@ -18,6 +18,7 @@ function findLineNumber(content: string, pattern: RegExp): number | undefined {
 /**
  * Check skill file content against deny/require pattern rules.
  */
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: policy validation requires checking many rule combinations
 export function checkContent(file: SkillFile, policy: SkillPolicy): PolicyFinding[] {
 	if (!policy.content) {
 		return [];

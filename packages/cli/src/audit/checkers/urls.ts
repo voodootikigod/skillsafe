@@ -3,21 +3,34 @@ import type { AuditChecker, AuditFinding, CheckContext, ExtractedUrl } from "../
 
 const CONCURRENCY_LIMIT = 5;
 const TIMEOUT_MS = 10_000;
+const PRIVATE_172_RE = /^172\.(1[6-9]|2\d|3[01])\./;
 
 /**
  * Check if an IP address is private, loopback, link-local, or a cloud metadata endpoint.
  */
 function isPrivateIp(ip: string): boolean {
 	// IPv4 loopback
-	if (ip.startsWith("127.") || ip === "0.0.0.0") return true;
+	if (ip.startsWith("127.") || ip === "0.0.0.0") {
+		return true;
+	}
 	// IPv4 private ranges
-	if (ip.startsWith("10.")) return true;
-	if (ip.startsWith("192.168.")) return true;
-	if (/^172\.(1[6-9]|2\d|3[01])\./.test(ip)) return true;
+	if (ip.startsWith("10.")) {
+		return true;
+	}
+	if (ip.startsWith("192.168.")) {
+		return true;
+	}
+	if (PRIVATE_172_RE.test(ip)) {
+		return true;
+	}
 	// IPv4 link-local
-	if (ip.startsWith("169.254.")) return true;
+	if (ip.startsWith("169.254.")) {
+		return true;
+	}
 	// IPv6 loopback and link-local
-	if (ip === "::1" || ip.startsWith("fe80:") || ip === "::") return true;
+	if (ip === "::1" || ip.startsWith("fe80:") || ip === "::") {
+		return true;
+	}
 	return false;
 }
 
@@ -25,11 +38,7 @@ function isPrivateIp(ip: string): boolean {
  * Check if a URL hostname points to a known cloud metadata endpoint.
  */
 function isCloudMetadataHost(hostname: string): boolean {
-	const blocked = [
-		"169.254.169.254",
-		"metadata.google.internal",
-		"metadata.goog",
-	];
+	const blocked = ["169.254.169.254", "metadata.google.internal", "metadata.goog"];
 	return blocked.includes(hostname.toLowerCase());
 }
 
@@ -43,21 +52,21 @@ async function isSafeUrl(url: string): Promise<boolean> {
 		const hostname = parsed.hostname;
 
 		// Block known cloud metadata endpoints
-		if (isCloudMetadataHost(hostname)) return false;
+		if (isCloudMetadataHost(hostname)) {
+			return false;
+		}
 
 		// Block common private-network hostnames
-		if (
-			hostname === "localhost" ||
-			hostname.endsWith(".local") ||
-			hostname.endsWith(".internal")
-		) {
+		if (hostname === "localhost" || hostname.endsWith(".local") || hostname.endsWith(".internal")) {
 			return false;
 		}
 
 		// Resolve DNS and check the IP
 		try {
 			const result = await lookup(hostname);
-			if (isPrivateIp(result.address)) return false;
+			if (isPrivateIp(result.address)) {
+				return false;
+			}
 		} catch {
 			// DNS resolution failed — allow fetch to fail naturally
 		}

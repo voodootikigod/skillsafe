@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
-import type { GraderResult } from "../types.js";
 import { safePath } from "../safe-path.js";
+import type { GraderResult } from "../types.js";
 
 /**
  * Parse a JSON file and validate its structure against an expected schema.

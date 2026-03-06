@@ -8,6 +8,7 @@ import type { GraderResult } from "../types.js";
  * Check that a file contains (or does not contain) the given regex patterns.
  * When `negate` is true, checks that none of the patterns match (not-contains).
  */
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: grading logic requires multiple validation paths
 export async function gradeContains(
 	workDir: string,
 	file: string,

@@ -1,7 +1,7 @@
 import { stat } from "node:fs/promises";
 import { resolve } from "node:path";
-import type { GraderResult } from "../types.js";
 import { safePath } from "../safe-path.js";
+import type { GraderResult } from "../types.js";
 
 /**
  * Check that specific files exist in the work directory.

@@ -1,16 +1,16 @@
 export interface CommandInfo {
-	slug: string;
-	name: string;
-	icon: string;
-	tagline: string;
-	description: string;
-	group: string;
-	whyItMatters: string;
-	whatItDoes: string[];
-	usage: string;
-	options: { flag: string; description: string }[];
-	examples: { label: string; code: string }[];
 	ciTip?: string;
+	description: string;
+	examples: { label: string; code: string }[];
+	group: string;
+	icon: string;
+	name: string;
+	options: { flag: string; description: string }[];
+	slug: string;
+	tagline: string;
+	usage: string;
+	whatItDoes: string[];
+	whyItMatters: string;
 }
 
 export const commands: CommandInfo[] = [
@@ -31,9 +31,12 @@ export const commands: CommandInfo[] = [
 			"Reports stale products with the exact version gap (e.g. 4.2.0 → 4.5.1)",
 			"Exits with code 1 in CI mode when staleness is detected",
 		],
-		usage: `npx skills-check check [options]`,
+		usage: "npx skills-check check [options]",
 		options: [
-			{ flag: "--registry <path>", description: "Path to skills-check.json (default: skills-check.json)" },
+			{
+				flag: "--registry <path>",
+				description: "Path to skills-check.json (default: skills-check.json)",
+			},
 			{ flag: "--json", description: "Output results as JSON" },
 			{ flag: "--ci", description: "CI mode — exit code 1 if stale products found" },
 			{ flag: "-p, --product <name>", description: "Check a single product" },
@@ -65,7 +68,7 @@ export const commands: CommandInfo[] = [
 			"Presents a diff for review in interactive mode, or auto-applies with -y",
 			"Preserves your skill's structure and style — only changes what's outdated",
 		],
-		usage: `npx skills-check refresh [skills-dir] [options]`,
+		usage: "npx skills-check refresh [skills-dir] [options]",
 		options: [
 			{ flag: "-y, --yes", description: "Auto-apply all changes without prompting" },
 			{ flag: "--dry-run", description: "Preview changes without writing files" },
@@ -89,8 +92,7 @@ export const commands: CommandInfo[] = [
 		slug: "report",
 		name: "report",
 		icon: "\u2691",
-		tagline:
-			"Generate a formatted staleness report in markdown or JSON for your team or CI.",
+		tagline: "Generate a formatted staleness report in markdown or JSON for your team or CI.",
 		group: "Freshness & Currency",
 		description:
 			"Produce a comprehensive staleness report summarizing which skills are current, which are stale, and by how much. Output as markdown for issues or JSON for automation.",
@@ -102,7 +104,7 @@ export const commands: CommandInfo[] = [
 			"Groups results by status (stale, current, error)",
 			"Outputs markdown suitable for GitHub issues or JSON for pipelines",
 		],
-		usage: `npx skills-check report [options]`,
+		usage: "npx skills-check report [options]",
 		options: [
 			{ flag: "--registry <path>", description: "Path to skills-check.json" },
 			{ flag: "--format <type>", description: "Output format: markdown or json" },
@@ -118,8 +120,7 @@ export const commands: CommandInfo[] = [
 		slug: "audit",
 		name: "audit",
 		icon: "\u26A1",
-		tagline:
-			"Scan for hallucinated packages, prompt injection, dangerous commands, and dead URLs.",
+		tagline: "Scan for hallucinated packages, prompt injection, dangerous commands, and dead URLs.",
 		group: "Security & Quality",
 		description:
 			"A security-focused scan that verifies every package, URL, and command in your skill files. Catches hallucinated dependencies, prompt injection patterns, dangerous shell commands, and broken links before they reach an agent.",
@@ -133,10 +134,13 @@ export const commands: CommandInfo[] = [
 			"Checks every URL for liveness via HEAD requests with SSRF protection",
 			"Validates frontmatter metadata completeness",
 		],
-		usage: `npx skills-check audit [path] [options]`,
+		usage: "npx skills-check audit [path] [options]",
 		options: [
 			{ flag: "--format <type>", description: "Output: terminal, json, markdown, or sarif" },
-			{ flag: "--fail-on <severity>", description: "Exit 1 at threshold: critical, high, medium, low" },
+			{
+				flag: "--fail-on <severity>",
+				description: "Exit 1 at threshold: critical, high, medium, low",
+			},
 			{ flag: "--ci", description: "CI mode with strict exit codes" },
 			{ flag: "--quiet", description: "Suppress non-finding output" },
 			{ flag: "--no-network", description: "Skip network-dependent checks (registry, URLs)" },
@@ -154,8 +158,7 @@ export const commands: CommandInfo[] = [
 		slug: "lint",
 		name: "lint",
 		icon: "\u2726",
-		tagline:
-			"Validate metadata completeness, structural quality, and format in skill files.",
+		tagline: "Validate metadata completeness, structural quality, and format in skill files.",
 		group: "Security & Quality",
 		description:
 			"Enforce metadata standards across your skill fleet. Validates required frontmatter fields, checks SPDX license identifiers, verifies URLs, and can auto-fix missing fields from git context.",
@@ -168,7 +171,7 @@ export const commands: CommandInfo[] = [
 			"Verifies format: semver syntax, SPDX license identifiers (100+ supported with OR/AND expressions), valid URLs",
 			"Auto-fix mode populates missing fields from git context (author from git config, repo from git remote)",
 		],
-		usage: `npx skills-check lint [dir] [options]`,
+		usage: "npx skills-check lint [dir] [options]",
 		options: [
 			{ flag: "--fix", description: "Auto-fix missing fields from git context" },
 			{ flag: "--ci", description: "CI mode with strict exit codes" },
@@ -188,8 +191,7 @@ export const commands: CommandInfo[] = [
 		slug: "policy",
 		name: "policy",
 		icon: "\u229E",
-		tagline:
-			"Enforce organizational trust rules for skills via .skill-policy.yml policy-as-code.",
+		tagline: "Enforce organizational trust rules for skills via .skill-policy.yml policy-as-code.",
 		group: "Security & Quality",
 		description:
 			"Define and enforce organizational rules for which skills are allowed, what they must contain, and where they can come from. Policy-as-code via a .skill-policy.yml file that lives in your repo.",
@@ -204,7 +206,7 @@ export const commands: CommandInfo[] = [
 			"Freshness limits — max version drift and max age in days",
 			"Audit integration — require clean audit results as part of policy",
 		],
-		usage: `npx skills-check policy <subcommand> [options]`,
+		usage: "npx skills-check policy <subcommand> [options]",
 		options: [
 			{ flag: "--policy <path>", description: "Path to .skill-policy.yml" },
 			{ flag: "--fail-on <severity>", description: "Threshold: blocked, violation, or warning" },
@@ -239,7 +241,7 @@ export const commands: CommandInfo[] = [
 			"Saves snapshots and compares against baselines to track budget changes over time",
 			"Enforces token ceilings — exit 1 if total exceeds a configurable threshold",
 		],
-		usage: `npx skills-check budget [dir] [options]`,
+		usage: "npx skills-check budget [dir] [options]",
 		options: [
 			{ flag: "-s, --skill <name>", description: "Analyze a specific skill" },
 			{ flag: "-d, --detailed", description: "Per-section token breakdown" },
@@ -263,8 +265,7 @@ export const commands: CommandInfo[] = [
 		slug: "verify",
 		name: "verify",
 		icon: "\u2690",
-		tagline:
-			"Validate that content changes between skill versions match the declared semver bump.",
+		tagline: "Validate that content changes between skill versions match the declared semver bump.",
 		group: "Analysis & Verification",
 		description:
 			"Like cargo semver-checks but for knowledge. Verify that the version bump declared in a skill's frontmatter actually matches the magnitude of content changes. Catches both under-bumps (breaking changes in a patch) and over-bumps (typo fix as a major).",
@@ -278,7 +279,7 @@ export const commands: CommandInfo[] = [
 			"Compares the classified change level against the declared version bump",
 			"Suggests the correct version bump when mismatches are found",
 		],
-		usage: `npx skills-check verify [options]`,
+		usage: "npx skills-check verify [options]",
 		options: [
 			{ flag: "-s, --skill <path>", description: "Verify a specific skill file" },
 			{ flag: "-a, --all", description: "Verify all skills with git history" },
@@ -300,8 +301,7 @@ export const commands: CommandInfo[] = [
 		slug: "test",
 		name: "test",
 		icon: "\u25B7",
-		tagline:
-			"Run eval test suites declared in skill tests/ directories for regression detection.",
+		tagline: "Run eval test suites declared in skill tests/ directories for regression detection.",
 		group: "Analysis & Verification",
 		description:
 			"Execute eval test suites that verify skills actually work when loaded by an agent. Define test cases in cases.yaml with prompts, expected outcomes, and graders. Track baselines to catch regressions after refresh.",
@@ -316,7 +316,7 @@ export const commands: CommandInfo[] = [
 			"Runs multiple trials per test case with configurable pass thresholds and flaky test detection",
 			"Stores baselines for regression tracking across skill updates",
 		],
-		usage: `npx skills-check test [dir] [options]`,
+		usage: "npx skills-check test [dir] [options]",
 		options: [
 			{ flag: "-s, --skill <name>", description: "Test a specific skill" },
 			{ flag: "-t, --type <type>", description: "Filter: trigger, outcome, style, or regression" },
@@ -355,7 +355,7 @@ export const commands: CommandInfo[] = [
 			"In non-interactive mode (-y), auto-detects mappings from frontmatter",
 			"Generates a skills-check.json with $schema reference for editor validation",
 		],
-		usage: `npx skills-check init [dir] [options]`,
+		usage: "npx skills-check init [dir] [options]",
 		options: [
 			{ flag: "-y, --yes", description: "Non-interactive mode (auto-detect mappings)" },
 			{ flag: "-o, --output <path>", description: "Output path (default: skills-check.json)" },
@@ -363,7 +363,10 @@ export const commands: CommandInfo[] = [
 		examples: [
 			{ label: "Interactive setup", code: "npx skills-check init ./skills" },
 			{ label: "Auto-detect", code: "npx skills-check init ./skills -y" },
-			{ label: "Custom output path", code: "npx skills-check init ./skills -o config/registry.json" },
+			{
+				label: "Custom output path",
+				code: "npx skills-check init ./skills -o config/registry.json",
+			},
 		],
 		ciTip:
 			"Run init once locally, then commit skills-check.json to your repo. Other commands will find it automatically.",

@@ -66,7 +66,7 @@ describe("urlChecker", () => {
 	it("skips localhost URLs", async () => {
 		mockLookup.mockResolvedValue({ address: "127.0.0.1", family: 4 });
 		const ctx = makeContext([url("http://localhost:3000"), url("http://127.0.0.1:8080")]);
-		const findings = await urlChecker.check(ctx);
+		const _findings = await urlChecker.check(ctx);
 		expect(mockFetch).not.toHaveBeenCalled();
 	});
 
@@ -78,7 +78,7 @@ describe("urlChecker", () => {
 		];
 		mockLookup.mockResolvedValue({ address: "169.254.169.254", family: 4 });
 		const ctx = makeContext(privateUrls);
-		const findings = await urlChecker.check(ctx);
+		const _findings = await urlChecker.check(ctx);
 		expect(mockFetch).not.toHaveBeenCalled();
 	});
 

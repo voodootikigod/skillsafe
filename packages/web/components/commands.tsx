@@ -30,17 +30,11 @@ export function Commands() {
 							<span className={styles.groupLabel}>{group.label}</span>
 							<div className={styles.cards}>
 								{group.commands.map((cmd) => (
-									<Link
-										className={styles.card}
-										href={`/commands/${cmd.slug}`}
-										key={cmd.name}
-									>
+									<Link className={styles.card} href={`/commands/${cmd.slug}`} key={cmd.name}>
 										<div className={styles.cardIcon}>{cmd.icon}</div>
 										<div className={styles.cardBody}>
 											<div className={styles.cardName}>{cmd.name}</div>
-											<div className={styles.cardDescription}>
-												{cmd.description}
-											</div>
+											<div className={styles.cardDescription}>{cmd.description}</div>
 										</div>
 									</Link>
 								))}
