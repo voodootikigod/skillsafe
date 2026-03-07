@@ -1,7 +1,8 @@
-import { writeFile } from "node:fs/promises";
 import chalk from "chalk";
+import { formatAndOutput } from "../shared/index.js";
 import { runVerify } from "../verify/index.js";
 import { formatVerifyJson } from "../verify/reporters/json.js";
+import { formatVerifyMarkdown } from "../verify/reporters/markdown.js";
 import { formatVerifyTerminal } from "../verify/reporters/terminal.js";
 import type { VerifyOptions } from "../verify/types.js";
 
@@ -9,7 +10,7 @@ interface VerifyCommandOptions {
 	after?: string;
 	all?: boolean;
 	before?: string;
-	format?: "terminal" | "json";
+	format?: "terminal" | "json" | "markdown";
 	model?: string;
 	output?: string;
 	provider?: string;
@@ -20,7 +21,6 @@ interface VerifyCommandOptions {
 	verbose?: boolean;
 }
 
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: orchestrator function
 export async function verifyCommand(options: VerifyCommandOptions): Promise<number> {
 	if (options.verbose && options.quiet) {
 		console.error(chalk.red("Cannot use --verbose and --quiet together"));
@@ -78,27 +78,16 @@ export async function verifyCommand(options: VerifyCommandOptions): Promise<numb
 		);
 	}
 
-	// Format output
-	const format = options.format ?? "terminal";
-	let output: string;
-	switch (format) {
-		case "json":
-			output = formatVerifyJson(report);
-			break;
-		default:
-			output = formatVerifyTerminal(report);
-			break;
-	}
-
-	// Write to file or stdout
-	if (options.output) {
-		await writeFile(options.output, output, "utf-8");
-		if (!options.quiet) {
-			console.error(chalk.green(`Report written to ${options.output}`));
+	// Format and write output
+	await formatAndOutput(
+		report,
+		{ format: options.format, output: options.output, quiet: options.quiet },
+		{
+			terminal: formatVerifyTerminal,
+			json: formatVerifyJson,
+			markdown: formatVerifyMarkdown,
 		}
-	} else if (!options.quiet) {
-		console.log(output);
-	}
+	);
 
 	// Exit code: 1 if any mismatches found
 	return report.summary.failed > 0 ? 1 : 0;

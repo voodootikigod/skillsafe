@@ -20,6 +20,6 @@ export interface LintOptions {
 	ci?: boolean;
 	failOn?: "error" | "warning";
 	fix?: boolean;
-	format?: "terminal" | "json";
+	format?: "terminal" | "json" | "markdown";
 	output?: string;
 }

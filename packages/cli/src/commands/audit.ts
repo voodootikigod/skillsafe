@@ -1,4 +1,3 @@
-import { writeFile } from "node:fs/promises";
 import chalk from "chalk";
 import { runAudit } from "../audit/index.js";
 import { formatJson } from "../audit/reporters/json.js";
@@ -7,6 +6,7 @@ import { formatSarif } from "../audit/reporters/sarif.js";
 import { formatTerminal } from "../audit/reporters/terminal.js";
 import type { AuditOptions, AuditSeverity } from "../audit/types.js";
 import type { IsolationChoice } from "../isolation/types.js";
+import { auditThreshold, formatAndOutput } from "../shared/index.js";
 
 interface AuditCommandOptions {
 	failOn?: string;
@@ -22,19 +22,6 @@ interface AuditCommandOptions {
 	verbose?: boolean;
 }
 
-const SEVERITY_ORDER: Record<AuditSeverity, number> = {
-	critical: 0,
-	high: 1,
-	medium: 2,
-	low: 3,
-};
-
-const VALID_SEVERITIES = new Set(["critical", "high", "medium", "low"]);
-
-function meetsThreshold(severity: AuditSeverity, threshold: AuditSeverity): boolean {
-	return SEVERITY_ORDER[severity] <= SEVERITY_ORDER[threshold];
-}
-
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: orchestrator function
 export async function auditCommand(dir: string, options: AuditCommandOptions): Promise<number> {
 	if (options.verbose && options.quiet) {
@@ -43,9 +30,11 @@ export async function auditCommand(dir: string, options: AuditCommandOptions): P
 	}
 
 	const failOn = (options.failOn ?? "high") as AuditSeverity;
-	if (!VALID_SEVERITIES.has(failOn)) {
+	if (!auditThreshold.validValues.has(failOn)) {
 		console.error(
-			chalk.red(`Invalid --fail-on value: "${options.failOn}". Use: critical, high, medium, low`)
+			chalk.red(
+				`Invalid --fail-on value: "${options.failOn}". Use: ${[...auditThreshold.validValues].join(", ")}`
+			)
 		);
 		return 2;
 	}
@@ -171,35 +160,21 @@ export async function auditCommand(dir: string, options: AuditCommandOptions): P
 		);
 	}
 
-	// Format output
-	const format = options.format ?? "terminal";
-	let output: string;
-	switch (format) {
-		case "json":
-			output = formatJson(report);
-			break;
-		case "markdown":
-			output = formatMarkdown(report);
-			break;
-		case "sarif":
-			output = formatSarif(report);
-			break;
-		default:
-			output = formatTerminal(report);
-			break;
-	}
-
-	// Write to file or stdout
-	if (options.output) {
-		await writeFile(options.output, output, "utf-8");
-		if (!options.quiet) {
-			console.error(chalk.green(`Report written to ${options.output}`));
+	// Format and write output
+	await formatAndOutput(
+		report,
+		{ format: options.format, output: options.output, quiet: options.quiet },
+		{
+			terminal: formatTerminal,
+			json: formatJson,
+			markdown: formatMarkdown,
+			sarif: formatSarif,
 		}
-	} else if (!options.quiet) {
-		console.log(output);
-	}
+	);
 
 	// Determine exit code based on threshold
-	const hasFailingFindings = report.findings.some((f) => meetsThreshold(f.severity, failOn));
+	const hasFailingFindings = report.findings.some((f) =>
+		auditThreshold.meetsThreshold(f.severity, failOn)
+	);
 	return hasFailingFindings ? 1 : 0;
 }

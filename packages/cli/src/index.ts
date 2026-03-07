@@ -141,7 +141,7 @@ program
 	.option("--fix", "auto-fix missing fields from git context")
 	.option("--ci", "strict CI mode")
 	.option("--fail-on <level>", "exit code 1 threshold: error, warning", "error")
-	.option("-f, --format <type>", "output format: terminal or json", "terminal")
+	.option("-f, --format <type>", "output format: terminal, json, or markdown", "terminal")
 	.option("-o, --output <path>", "write report to file")
 	.action(async (dir, options) => {
 		try {
@@ -176,7 +176,7 @@ program
 	.option("--before <path>", "path to previous version of skill")
 	.option("--after <path>", "path to current version of skill")
 	.option("--suggest", "suggest appropriate version bump")
-	.option("-f, --format <type>", "output format: terminal or json", "terminal")
+	.option("-f, --format <type>", "output format: terminal, json, or markdown", "terminal")
 	.option("-o, --output <path>", "write report to file")
 	.option("--provider <name>", "LLM provider: anthropic, openai, google")
 	.option("--model <id>", "specific model ID")
@@ -204,7 +204,7 @@ policyCmd
 	.option("--policy <path>", "path to .skill-policy.yml")
 	.option("-s, --skill <name>", "check a specific skill by name")
 	.option("--ci", "strict exit codes")
-	.option("-f, --format <type>", "output format: terminal or json", "terminal")
+	.option("-f, --format <type>", "output format: terminal, json, or markdown", "terminal")
 	.option("-o, --output <path>", "write report to file")
 	.option("--fail-on <severity>", "exit code 1 threshold: blocked, violation, warning", "blocked")
 	.action(async (dir, options) => {

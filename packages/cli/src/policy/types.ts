@@ -46,7 +46,7 @@ export interface PolicyReport {
 export interface PolicyOptions {
 	ci?: boolean;
 	failOn?: PolicySeverity;
-	format?: "terminal" | "json";
+	format?: "terminal" | "json" | "markdown";
 	output?: string;
 	policy?: string;
 	skill?: string;

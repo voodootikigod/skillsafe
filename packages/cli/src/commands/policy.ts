@@ -4,28 +4,18 @@ import { runPolicyCheck } from "../policy/index.js";
 import { generateStarterPolicy } from "../policy/init.js";
 import { discoverPolicyFile, loadPolicyFile, validatePolicy } from "../policy/parser.js";
 import { formatPolicyJson } from "../policy/reporters/json.js";
+import { formatPolicyMarkdown } from "../policy/reporters/markdown.js";
 import { formatPolicyTerminal } from "../policy/reporters/terminal.js";
 import type { PolicyOptions, PolicySeverity, SkillPolicy } from "../policy/types.js";
+import { formatAndOutput, policyThreshold } from "../shared/index.js";
 
 interface PolicyCheckCommandOptions {
 	ci?: boolean;
 	failOn?: string;
-	format?: "terminal" | "json";
+	format?: "terminal" | "json" | "markdown";
 	output?: string;
 	policy?: string;
 	skill?: string;
-}
-
-const SEVERITY_ORDER: Record<PolicySeverity, number> = {
-	blocked: 0,
-	violation: 1,
-	warning: 2,
-};
-
-const VALID_SEVERITIES = new Set(["blocked", "violation", "warning"]);
-
-function meetsThreshold(severity: PolicySeverity, threshold: PolicySeverity): boolean {
-	return SEVERITY_ORDER[severity] <= SEVERITY_ORDER[threshold];
 }
 
 /**
@@ -36,9 +26,11 @@ export async function policyCheckCommand(
 	options: PolicyCheckCommandOptions
 ): Promise<number> {
 	const failOn = (options.failOn ?? "blocked") as PolicySeverity;
-	if (!VALID_SEVERITIES.has(failOn)) {
+	if (!policyThreshold.validValues.has(failOn)) {
 		console.error(
-			chalk.red(`Invalid --fail-on value: "${options.failOn}". Use: blocked, violation, warning`)
+			chalk.red(
+				`Invalid --fail-on value: "${options.failOn}". Use: ${[...policyThreshold.validValues].join(", ")}`
+			)
 		);
 		return 2;
 	}
@@ -89,28 +81,21 @@ export async function policyCheckCommand(
 
 	const report = await runPolicyCheck([dir], policy, policyPath, policyOptions);
 
-	// Format output
-	const format = options.format ?? "terminal";
-	let output: string;
-	switch (format) {
-		case "json":
-			output = formatPolicyJson(report);
-			break;
-		default:
-			output = formatPolicyTerminal(report);
-			break;
-	}
-
-	// Write to file or stdout
-	if (options.output) {
-		await writeFile(options.output, output, "utf-8");
-		console.error(chalk.green(`Report written to ${options.output}`));
-	} else {
-		console.log(output);
-	}
+	// Format and write output
+	await formatAndOutput(
+		report,
+		{ format: options.format, output: options.output },
+		{
+			terminal: formatPolicyTerminal,
+			json: formatPolicyJson,
+			markdown: formatPolicyMarkdown,
+		}
+	);
 
 	// Determine exit code based on threshold
-	const hasFailingFindings = report.findings.some((f) => meetsThreshold(f.severity, failOn));
+	const hasFailingFindings = report.findings.some((f) =>
+		policyThreshold.meetsThreshold(f.severity, failOn)
+	);
 	const hasMissingRequired = report.required.some((r) => !r.satisfied);
 
 	if (options.ci && (hasFailingFindings || hasMissingRequired)) {
