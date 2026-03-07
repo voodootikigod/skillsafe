@@ -1,6 +1,7 @@
 import type { NpmDistTags } from "./types.js";
 
 const NPM_REGISTRY = "https://registry.npmjs.org";
+const FETCH_TIMEOUT_MS = 15_000;
 
 export interface NpmPackageMetadata {
 	name: string;
@@ -17,11 +18,17 @@ export interface NpmPackageMetadata {
  */
 export async function fetchPackageMetadata(packageName: string): Promise<NpmPackageMetadata> {
 	const url = `${NPM_REGISTRY}/${encodeURIComponent(packageName)}`;
-	const response = await fetch(url, {
-		headers: {
-			Accept: "application/json",
-		},
-	});
+	const controller = new AbortController();
+	const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+	let response: Response;
+	try {
+		response = await fetch(url, {
+			headers: { Accept: "application/json" },
+			signal: controller.signal,
+		});
+	} finally {
+		clearTimeout(timer);
+	}
 
 	if (!response.ok) {
 		throw new Error(`npm registry returned ${response.status} for "${packageName}"`);
@@ -37,11 +44,17 @@ export async function fetchPackageMetadata(packageName: string): Promise<NpmPack
  */
 export async function fetchLatestVersion(packageName: string): Promise<string> {
 	const url = `${NPM_REGISTRY}/${encodeURIComponent(packageName)}`;
-	const response = await fetch(url, {
-		headers: {
-			Accept: "application/vnd.npm.install-v1+json",
-		},
-	});
+	const controller = new AbortController();
+	const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+	let response: Response;
+	try {
+		response = await fetch(url, {
+			headers: { Accept: "application/vnd.npm.install-v1+json" },
+			signal: controller.signal,
+		});
+	} finally {
+		clearTimeout(timer);
+	}
 
 	if (!response.ok) {
 		if (response.status === 404) {

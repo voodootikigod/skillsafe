@@ -1,4 +1,4 @@
-import { stat } from "node:fs/promises";
+import { lstat } from "node:fs/promises";
 import { resolve } from "node:path";
 import { safePath } from "../safe-path.js";
 import type { GraderResult } from "../types.js";
@@ -14,7 +14,7 @@ export async function gradeFileExists(workDir: string, paths: string[]): Promise
 	for (const p of paths) {
 		const fullPath = safePath(resolvedWorkDir, p);
 		try {
-			const info = await stat(fullPath);
+			const info = await lstat(fullPath);
 			if (info.isFile() || info.isDirectory()) {
 				found.push(p);
 			} else {

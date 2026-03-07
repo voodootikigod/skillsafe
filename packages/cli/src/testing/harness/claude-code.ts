@@ -31,9 +31,9 @@ async function listFilesRecursive(dir: string): Promise<Set<string>> {
 		}
 		for (const entry of entries) {
 			const fullPath = join(d, entry);
-			const { stat } = await import("node:fs/promises");
+			const { lstat } = await import("node:fs/promises");
 			try {
-				const info = await stat(fullPath);
+				const info = await lstat(fullPath);
 				if (info.isDirectory()) {
 					await walk(fullPath);
 				} else {

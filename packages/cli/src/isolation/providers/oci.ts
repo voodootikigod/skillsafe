@@ -87,6 +87,14 @@ export async function detectOCIRuntime(
 }
 
 /**
+ * Shell-escape a string for safe inclusion in a sh -c command.
+ * Wraps the value in single quotes and escapes any embedded single quotes.
+ */
+function shellEscape(s: string): string {
+	return `'${s.replace(/'/g, "'\\''")}'`;
+}
+
+/**
  * OCI container runtime provider.
  * Supports Docker, Podman, OrbStack, Rancher Desktop, nerdctl (containerd), and CRI-O.
  */
@@ -106,7 +114,7 @@ export class OCIProvider implements IsolationProvider {
 	}
 
 	async execute(options: IsolationExecuteOptions): Promise<IsolationResult> {
-		const fullCommand = `npx skills-check ${options.command}`;
+		const escapedCommand = shellEscape(options.command);
 		const args = ["run", "--rm"];
 
 		// Mount skills directory read-only
@@ -131,7 +139,11 @@ export class OCIProvider implements IsolationProvider {
 
 		// Use a slim Node 22 image
 		args.push("node:22-alpine");
-		args.push("sh", "-c", `cd /skills && npm install -g skills-check && ${fullCommand}`);
+		args.push(
+			"sh",
+			"-c",
+			`cd /skills && npm install -g skills-check && npx skills-check ${escapedCommand}`
+		);
 
 		const result = await new Promise<{ exitCode: number; stdout: string; stderr: string }>(
 			(resolve) => {

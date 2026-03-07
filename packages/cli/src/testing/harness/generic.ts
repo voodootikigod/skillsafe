@@ -1,5 +1,5 @@
 import { exec } from "node:child_process";
-import { readdir, stat } from "node:fs/promises";
+import { lstat, readdir } from "node:fs/promises";
 import { join } from "node:path";
 import type { AgentExecution } from "../types.js";
 import type { AgentHarness } from "./interface.js";
@@ -20,7 +20,7 @@ async function listFilesRecursive(dir: string): Promise<Set<string>> {
 		for (const entry of entries) {
 			const fullPath = join(d, entry);
 			try {
-				const info = await stat(fullPath);
+				const info = await lstat(fullPath);
 				if (info.isDirectory()) {
 					await walk(fullPath);
 				} else {

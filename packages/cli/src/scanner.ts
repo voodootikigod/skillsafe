@@ -1,4 +1,4 @@
-import { readdir, readFile, stat } from "node:fs/promises";
+import { lstat, readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import matter from "gray-matter";
 import type { ScannedSkill } from "./types.js";
@@ -21,7 +21,7 @@ export async function scanSkills(skillsDir: string): Promise<ScannedSkill[]> {
 			const skillPath = join(skillsDir, entry, "SKILL.md");
 
 			try {
-				const info = await stat(join(skillsDir, entry));
+				const info = await lstat(join(skillsDir, entry));
 				if (!info.isDirectory()) {
 					return null;
 				}

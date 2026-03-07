@@ -19,7 +19,7 @@ vi.mock("node:fs/promises", async () => {
 	return {
 		...actual,
 		readdir: vi.fn().mockResolvedValue([]),
-		stat: vi.fn().mockRejectedValue(new Error("not found")),
+		lstat: vi.fn().mockRejectedValue(new Error("not found")),
 	};
 });
 

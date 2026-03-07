@@ -1,4 +1,4 @@
-import { readdir, stat } from "node:fs/promises";
+import { lstat, readdir } from "node:fs/promises";
 import { join } from "node:path";
 
 /**
@@ -21,11 +21,11 @@ export async function discoverSkillFiles(dir: string): Promise<string[]> {
 	for (const entry of entries) {
 		const fullPath = join(dir, entry);
 		try {
-			const info = await stat(fullPath);
+			const info = await lstat(fullPath);
 			if (info.isDirectory()) {
 				const skillPath = join(fullPath, "SKILL.md");
 				try {
-					await stat(skillPath);
+					await lstat(skillPath);
 					files.push(skillPath);
 				} catch {
 					// No SKILL.md here — recurse deeper

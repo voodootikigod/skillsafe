@@ -1,4 +1,4 @@
-import { stat } from "node:fs/promises";
+import { lstat } from "node:fs/promises";
 import { basename, dirname, join } from "node:path";
 import { discoverSkillFiles } from "../shared/discovery.js";
 import type { SkillFile } from "../skill-io.js";
@@ -38,7 +38,7 @@ export async function discoverTestableSkills(
 		for (const name of ["cases.yaml", "cases.yml"]) {
 			const candidate = join(testsDir, name);
 			try {
-				const info = await stat(candidate);
+				const info = await lstat(candidate);
 				if (info.isFile()) {
 					casesPath = candidate;
 					break;

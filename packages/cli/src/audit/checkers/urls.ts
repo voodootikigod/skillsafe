@@ -86,17 +86,20 @@ async function checkUrlLiveness(url: string): Promise<{ ok: boolean; status?: nu
 		const controller = new AbortController();
 		const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
-		const response = await fetch(url, {
-			method: "HEAD",
-			signal: controller.signal,
-			redirect: "follow",
-			headers: {
-				"User-Agent": "skills-check-cli (https://skillscheck.ai)",
-			},
-		});
+		try {
+			const response = await fetch(url, {
+				method: "HEAD",
+				signal: controller.signal,
+				redirect: "follow",
+				headers: {
+					"User-Agent": "skills-check-cli (https://skillscheck.ai)",
+				},
+			});
 
-		clearTimeout(timer);
-		return { ok: response.ok, status: response.status };
+			return { ok: response.ok, status: response.status };
+		} finally {
+			clearTimeout(timer);
+		}
 	} catch {
 		// Network error, timeout, or DNS failure
 		return { ok: false };
