@@ -255,6 +255,10 @@ When writing tests, follow the established patterns: mock all network-dependent 
 - **Web**: Deployed to Vercel at skillscheck.ai
 - **GitHub Action**: Defined in root `action.yml`, composite action supporting all 10 commands via `commands` input or individual toggle flags. Backward-compatible — defaults to `check` only. Per-command threshold inputs (e.g., `audit-fail-on`, `budget-max-tokens`). Outputs include `results` JSON with per-command exit codes
 
+### Releasing
+
+Use `/release [patch|minor|major]` to cut a new release. This command bumps all 4 package.json files in lock step, commits, tags, pushes, and updates the floating `v1` tag for GitHub Action consumers. The `publish.yml` workflow handles npm publish automatically from the new tag.
+
 ## Feature Development Checklist
 
 When adding or updating features, always update **all three surfaces**:
