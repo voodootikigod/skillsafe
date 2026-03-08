@@ -968,6 +968,16 @@ jobs:
 							</code>
 						</pre>
 					</section>
+
+					<section>
+						<h2 id="programmatic">Programmatic Reference</h2>
+						<p>
+							Need to integrate skills-check into scripts or CI pipelines? The{" "}
+							<Link href="/reference">programmatic reference</Link> documents exit codes, JSON
+							output schemas for every command, practical <code>jq</code> scripting examples, and
+							SARIF integration for the GitHub Security tab.
+						</p>
+					</section>
 				</article>
 			</main>
 			<Footer />
