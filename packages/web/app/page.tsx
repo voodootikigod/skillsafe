@@ -80,7 +80,7 @@ const organizationJsonLd = {
 	"@type": "Organization",
 	name: "Skills Check",
 	url: "https://skillscheck.ai",
-	logo: "https://skillscheck.ai/icon.svg",
+	logo: "https://skillscheck.ai/icon.png",
 	sameAs: ["https://github.com/voodootikigod/skills-check"],
 };
 
