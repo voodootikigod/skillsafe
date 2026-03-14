@@ -15,11 +15,11 @@ interface FingerprintCommandOptions {
 
 function formatFingerprintTerminal(registry: Record<string, unknown>): string {
 	const reg = registry as {
-		skills: Array<{
-			name: string;
+		entries: Array<{
+			skillId: string;
 			version: string;
-			fingerprints: { watermark?: string };
-			token_count: number;
+			watermark?: string;
+			tokenCount: number;
 			path: string;
 		}>;
 	};
@@ -28,7 +28,7 @@ function formatFingerprintTerminal(registry: Record<string, unknown>): string {
 	lines.push("═".repeat(70));
 	lines.push("");
 
-	if (reg.skills.length === 0) {
+	if (reg.entries.length === 0) {
 		lines.push(chalk.dim("  No skills found."));
 		return lines.join("\n");
 	}
@@ -38,15 +38,15 @@ function formatFingerprintTerminal(registry: Record<string, unknown>): string {
 	);
 	lines.push(`  ${"─".repeat(25)}${"─".repeat(12)}${"─".repeat(12)}${"─".repeat(8)}`);
 
-	for (const skill of reg.skills) {
-		const wm = skill.fingerprints.watermark ? chalk.green("✓") : chalk.dim("—");
+	for (const entry of reg.entries) {
+		const wm = entry.watermark ? chalk.green("✓") : chalk.dim("—");
 		lines.push(
-			`  ${skill.name.padEnd(25)}${skill.version.padEnd(12)}${wm.padEnd(12)}${skill.token_count.toLocaleString()}`
+			`  ${entry.skillId.padEnd(25)}${entry.version.padEnd(12)}${wm.padEnd(12)}${entry.tokenCount.toLocaleString()}`
 		);
 	}
 
 	lines.push("");
-	lines.push(`  ${chalk.bold("Total:")} ${reg.skills.length} skills`);
+	lines.push(`  ${chalk.bold("Total:")} ${reg.entries.length} skills`);
 	return lines.join("\n");
 }
 

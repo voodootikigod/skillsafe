@@ -51,29 +51,20 @@ export class SQLiteReader implements TelemetryReader {
 		const rows = stmt.all(...params) as Record<string, unknown>[];
 
 		return rows.map((row) => ({
-			schema_version: 1 as const,
+			schemaVersion: 1 as const,
 			timestamp: row.timestamp as string,
 			detection: row.detection as SkillTelemetryEvent["detection"],
 			confidence: row.confidence as number,
-			skill: {
-				name: row.skill_name as string,
-				version: row.skill_version as string,
-				source: (row.skill_source as string) || undefined,
-			},
-			request: {
-				id: row.request_id as string,
-				model: row.model as string,
-				skill_tokens: row.skill_tokens as number,
-				total_prompt_tokens: (row.total_prompt_tokens as number) || undefined,
-			},
-			org:
-				row.org_user || row.org_team || row.org_project
-					? {
-							user: (row.org_user as string) || undefined,
-							team: (row.org_team as string) || undefined,
-							project: (row.org_project as string) || undefined,
-						}
-					: undefined,
+			skillId: row.skill_id as string,
+			version: row.skill_version as string,
+			registry: (row.registry as string) || undefined,
+			requestId: (row.request_id as string) || undefined,
+			model: (row.model as string) || undefined,
+			skillTokens: (row.skill_tokens as number) || undefined,
+			totalPromptTokens: (row.total_prompt_tokens as number) || undefined,
+			team: (row.team as string) || undefined,
+			project: (row.project as string) || undefined,
+			user: (row.user as string) || undefined,
 		}));
 	}
 

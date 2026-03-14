@@ -22,14 +22,14 @@ export interface UsageReport {
 }
 
 /**
- * Deduplicate events by request.id — same skill detected multiple ways
+ * Deduplicate events by requestId — same skill detected multiple ways
  * in one request counts once. Keep the highest confidence detection.
  */
 function deduplicateEvents(events: SkillTelemetryEvent[]): SkillTelemetryEvent[] {
 	const byRequestAndSkill = new Map<string, SkillTelemetryEvent>();
 
 	for (const event of events) {
-		const key = `${event.request.id}:${event.skill.name}`;
+		const key = `${event.requestId ?? event.timestamp}:${event.skillId}`;
 		const existing = byRequestAndSkill.get(key);
 		if (!existing || event.confidence > existing.confidence) {
 			byRequestAndSkill.set(key, event);
@@ -48,12 +48,12 @@ export function analyzeUsage(
 ): UsageReport {
 	const deduplicated = deduplicateEvents(events);
 
-	// Group by skill name
+	// Group by skill ID
 	const bySkill = new Map<string, SkillTelemetryEvent[]>();
 	for (const event of deduplicated) {
-		const existing = bySkill.get(event.skill.name) ?? [];
+		const existing = bySkill.get(event.skillId) ?? [];
 		existing.push(event);
-		bySkill.set(event.skill.name, existing);
+		bySkill.set(event.skillId, existing);
 	}
 
 	const skills: SkillUsageStats[] = [];
@@ -62,15 +62,16 @@ export function analyzeUsage(
 	let totalCost = 0;
 
 	for (const [name, skillEvents] of bySkill) {
-		const versions = [...new Set(skillEvents.map((e) => e.skill.version))].sort();
+		const versions = [...new Set(skillEvents.map((e) => e.version))].sort();
 		const calls = skillEvents.length;
-		const tokens = skillEvents.reduce((sum, e) => sum + e.request.skill_tokens, 0);
+		const tokens = skillEvents.reduce((sum, e) => sum + (e.skillTokens ?? 0), 0);
 		const avgTokens = calls > 0 ? Math.round(tokens / calls) : 0;
 
 		// Model distribution
 		const models: Record<string, number> = {};
 		for (const e of skillEvents) {
-			models[e.request.model] = (models[e.request.model] ?? 0) + 1;
+			const model = e.model ?? "unknown";
+			models[model] = (models[model] ?? 0) + 1;
 		}
 
 		// Cost estimation: use per-call token average with default model

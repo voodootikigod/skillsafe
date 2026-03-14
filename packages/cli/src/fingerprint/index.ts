@@ -107,23 +107,21 @@ export async function runFingerprint(
 		const tokenCount = countTokens(skillFile.raw);
 
 		entries.push({
-			name,
+			skillId: name,
 			version,
 			source,
-			fingerprints: {
-				watermark: watermarkStr,
-				frontmatter_sha256: frontmatterHash,
-				content_sha256: contentHash,
-				content_prefix_sha256: prefixHash,
-			},
-			token_count: tokenCount,
+			frontmatterHash,
+			contentHash,
+			prefixHash,
+			watermark: watermarkStr,
+			tokenCount,
 			path: filePath,
 		});
 	}
 
 	return {
 		version: 1,
-		generated: new Date().toISOString(),
-		skills: entries,
+		generatedAt: new Date().toISOString(),
+		entries,
 	};
 }

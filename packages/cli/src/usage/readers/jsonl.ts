@@ -19,10 +19,10 @@ export class JSONLReader implements TelemetryReader {
 		for (const line of lines) {
 			try {
 				const event = JSON.parse(line) as SkillTelemetryEvent;
-				if (event.schema_version !== 1) {
+				if (event.schemaVersion !== 1) {
 					continue;
 				}
-				if (!(event.timestamp && event.skill && event.request)) {
+				if (!(event.timestamp && event.skillId && event.detection)) {
 					continue;
 				}
 

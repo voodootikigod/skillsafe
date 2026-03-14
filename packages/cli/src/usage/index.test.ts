@@ -24,12 +24,15 @@ const mockPolicyCheck = vi.mocked(checkUsagePolicy);
 
 function makeEvent(): SkillTelemetryEvent {
 	return {
-		schema_version: 1,
+		schemaVersion: 1,
 		timestamp: "2026-03-07T12:00:00Z",
 		detection: "watermark",
 		confidence: 1.0,
-		skill: { name: "react", version: "19.1.0" },
-		request: { id: "req_123", model: "claude-sonnet", skill_tokens: 2847 },
+		skillId: "react",
+		version: "19.1.0",
+		requestId: "req_123",
+		model: "claude-sonnet",
+		skillTokens: 2847,
 	};
 }
 

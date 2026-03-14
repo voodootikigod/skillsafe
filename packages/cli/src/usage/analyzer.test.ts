@@ -14,12 +14,15 @@ import { analyzeUsage } from "./analyzer.js";
 
 function makeEvent(overrides?: Partial<SkillTelemetryEvent>): SkillTelemetryEvent {
 	return {
-		schema_version: 1,
+		schemaVersion: 1,
 		timestamp: "2026-03-07T12:00:00Z",
 		detection: "watermark",
 		confidence: 1.0,
-		skill: { name: "react", version: "19.1.0" },
-		request: { id: "req_123", model: "claude-sonnet-4-6", skill_tokens: 2847 },
+		skillId: "react",
+		version: "19.1.0",
+		requestId: "req_123",
+		model: "claude-sonnet-4-6",
+		skillTokens: 2847,
 		...overrides,
 	};
 }
@@ -38,8 +41,8 @@ describe("analyzeUsage", () => {
 
 	it("aggregates events by skill name", () => {
 		const events = [
-			makeEvent({ request: { id: "req_1", model: "claude-sonnet-4-6", skill_tokens: 1000 } }),
-			makeEvent({ request: { id: "req_2", model: "claude-sonnet-4-6", skill_tokens: 2000 } }),
+			makeEvent({ requestId: "req_1", model: "claude-sonnet-4-6", skillTokens: 1000 }),
+			makeEvent({ requestId: "req_2", model: "claude-sonnet-4-6", skillTokens: 2000 }),
 		];
 
 		const report = analyzeUsage(events);
@@ -63,12 +66,18 @@ describe("analyzeUsage", () => {
 	it("detects version drift", () => {
 		const events = [
 			makeEvent({
-				request: { id: "req_1", model: "m", skill_tokens: 100 },
-				skill: { name: "react", version: "19.0.0" },
+				requestId: "req_1",
+				model: "m",
+				skillTokens: 100,
+				skillId: "react",
+				version: "19.0.0",
 			}),
 			makeEvent({
-				request: { id: "req_2", model: "m", skill_tokens: 100 },
-				skill: { name: "react", version: "19.1.0" },
+				requestId: "req_2",
+				model: "m",
+				skillTokens: 100,
+				skillId: "react",
+				version: "19.1.0",
 			}),
 		];
 
@@ -79,9 +88,9 @@ describe("analyzeUsage", () => {
 
 	it("tracks model distribution", () => {
 		const events = [
-			makeEvent({ request: { id: "req_1", model: "claude-sonnet", skill_tokens: 100 } }),
-			makeEvent({ request: { id: "req_2", model: "gpt-4o", skill_tokens: 100 } }),
-			makeEvent({ request: { id: "req_3", model: "claude-sonnet", skill_tokens: 100 } }),
+			makeEvent({ requestId: "req_1", model: "claude-sonnet", skillTokens: 100 }),
+			makeEvent({ requestId: "req_2", model: "gpt-4o", skillTokens: 100 }),
+			makeEvent({ requestId: "req_3", model: "claude-sonnet", skillTokens: 100 }),
 		];
 
 		const report = analyzeUsage(events);
@@ -92,16 +101,25 @@ describe("analyzeUsage", () => {
 	it("sorts skills by totalCalls descending", () => {
 		const events = [
 			makeEvent({
-				request: { id: "req_1", model: "m", skill_tokens: 100 },
-				skill: { name: "vue", version: "3.5" },
+				requestId: "req_1",
+				model: "m",
+				skillTokens: 100,
+				skillId: "vue",
+				version: "3.5",
 			}),
 			makeEvent({
-				request: { id: "req_2", model: "m", skill_tokens: 100 },
-				skill: { name: "react", version: "19.1.0" },
+				requestId: "req_2",
+				model: "m",
+				skillTokens: 100,
+				skillId: "react",
+				version: "19.1.0",
 			}),
 			makeEvent({
-				request: { id: "req_3", model: "m", skill_tokens: 100 },
-				skill: { name: "react", version: "19.1.0" },
+				requestId: "req_3",
+				model: "m",
+				skillTokens: 100,
+				skillId: "react",
+				version: "19.1.0",
 			}),
 		];
 

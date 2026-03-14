@@ -80,7 +80,7 @@ When implementing features, always check the relevant PRD first. When a PRD is t
 
 ## Monorepo Structure
 
-npm workspaces monorepo with three packages orchestrated by Turborepo:
+pnpm workspaces monorepo with three packages orchestrated by Turborepo:
 
 | Package | Published As | Purpose |
 |---------|-------------|---------|
@@ -93,36 +93,38 @@ npm workspaces monorepo with three packages orchestrated by Turborepo:
 ## Commands
 
 ```bash
-# Install dependencies (from root)
-npm install
+# Install dependencies (from root) — ALWAYS use pnpm, never npm
+pnpm install
 
 # Build all packages (respects dependency order)
-npm run build
+pnpm run build
 
 # Run tests (cli package only, uses Vitest)
-npm test
+pnpm test
 
 # Run a single test file
-cd packages/cli && npx vitest run src/severity.test.ts
+cd packages/cli && pnpm vitest run src/severity.test.ts
 
 # Lint all packages (Biome)
-npm run lint
+pnpm run lint
 
 # Auto-fix lint/format issues
-npx biome check --write .
+pnpm biome check --write .
 
 # Type check
-npm run typecheck
+pnpm run typecheck
 
 # Run CLI during development
-cd packages/cli && npx tsx src/index.ts check
-cd packages/cli && npx tsx src/index.ts audit [path]
-cd packages/cli && npx tsx src/index.ts fingerprint [path]
-cd packages/cli && npx tsx src/index.ts usage --store file://telemetry.jsonl
+cd packages/cli && pnpm tsx src/index.ts check
+cd packages/cli && pnpm tsx src/index.ts audit [path]
+cd packages/cli && pnpm tsx src/index.ts fingerprint [path]
+cd packages/cli && pnpm tsx src/index.ts usage --store file://telemetry.jsonl
 
 # Dev server for web
-cd packages/web && npm run dev
+cd packages/web && pnpm run dev
 ```
+
+**IMPORTANT:** This project uses **pnpm** as its package manager. Never use `npm install` or `npm run` — always use `pnpm`. Workspace dependencies use the `workspace:*` protocol. The `pnpm-workspace.yaml` defines the workspace layout.
 
 ## Code Style (Biome)
 

@@ -38,8 +38,8 @@ describe("runFingerprint", () => {
 		mockDiscover.mockResolvedValue([]);
 		const result = await runFingerprint(["."]);
 		expect(result.version).toBe(1);
-		expect(result.skills).toHaveLength(0);
-		expect(result.generated).toBeDefined();
+		expect(result.entries).toHaveLength(0);
+		expect(result.generatedAt).toBeDefined();
 	});
 
 	it("generates fingerprints for discovered skills", async () => {
@@ -53,13 +53,13 @@ describe("runFingerprint", () => {
 		});
 
 		const result = await runFingerprint(["."]);
-		expect(result.skills).toHaveLength(1);
-		expect(result.skills[0].name).toBe("react");
-		expect(result.skills[0].version).toBe("19.1.0");
-		expect(result.skills[0].fingerprints.frontmatter_sha256).toMatch(SHA256_HEX_RE);
-		expect(result.skills[0].fingerprints.content_sha256).toMatch(SHA256_HEX_RE);
-		expect(result.skills[0].fingerprints.content_prefix_sha256).toMatch(SHA256_HEX_RE);
-		expect(result.skills[0].token_count).toBeGreaterThan(0);
+		expect(result.entries).toHaveLength(1);
+		expect(result.entries[0].skillId).toBe("react");
+		expect(result.entries[0].version).toBe("19.1.0");
+		expect(result.entries[0].frontmatterHash).toMatch(SHA256_HEX_RE);
+		expect(result.entries[0].contentHash).toMatch(SHA256_HEX_RE);
+		expect(result.entries[0].prefixHash).toMatch(SHA256_HEX_RE);
+		expect(result.entries[0].tokenCount).toBeGreaterThan(0);
 	});
 
 	it("detects existing watermark", async () => {
@@ -74,7 +74,7 @@ describe("runFingerprint", () => {
 		});
 
 		const result = await runFingerprint(["."]);
-		expect(result.skills[0].fingerprints.watermark).toBe("skill:react/19.1.0 @acme/react");
+		expect(result.entries[0].watermark).toBe("skill:react/19.1.0 @acme/react");
 	});
 
 	it("injects watermark when requested and missing", async () => {
@@ -92,7 +92,7 @@ describe("runFingerprint", () => {
 		expect(mockWrite).toHaveBeenCalledOnce();
 		const writtenContent = mockWrite.mock.calls[0][1];
 		expect(writtenContent).toContain("<!-- skill:react/19.1.0 -->");
-		expect(result.skills[0].fingerprints.watermark).toBe("skill:react/19.1.0");
+		expect(result.entries[0].watermark).toBe("skill:react/19.1.0");
 	});
 
 	it("does not inject watermark when already present", async () => {
@@ -126,9 +126,9 @@ describe("runFingerprint", () => {
 			});
 
 		const result = await runFingerprint(["."]);
-		expect(result.skills).toHaveLength(2);
-		expect(result.skills[0].name).toBe("react");
-		expect(result.skills[1].name).toBe("vue");
+		expect(result.entries).toHaveLength(2);
+		expect(result.entries[0].skillId).toBe("react");
+		expect(result.entries[1].skillId).toBe("vue");
 	});
 
 	it("uses product-version as fallback", async () => {
@@ -142,6 +142,6 @@ describe("runFingerprint", () => {
 		});
 
 		const result = await runFingerprint(["."]);
-		expect(result.skills[0].version).toBe("19.1.0");
+		expect(result.entries[0].version).toBe("19.1.0");
 	});
 });

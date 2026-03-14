@@ -12,12 +12,15 @@ const mockReadFile = vi.mocked(readFile);
 
 function makeEvent(overrides?: Partial<SkillTelemetryEvent>): SkillTelemetryEvent {
 	return {
-		schema_version: 1,
+		schemaVersion: 1,
 		timestamp: "2026-03-07T12:00:00Z",
 		detection: "watermark",
 		confidence: 1.0,
-		skill: { name: "react", version: "19.1.0" },
-		request: { id: "req_123", model: "claude-sonnet-4-6", skill_tokens: 2847 },
+		skillId: "react",
+		version: "19.1.0",
+		requestId: "req_123",
+		model: "claude-sonnet-4-6",
+		skillTokens: 2847,
 		...overrides,
 	};
 }
@@ -28,14 +31,14 @@ describe("JSONLReader", () => {
 	});
 
 	it("parses valid JSONL events", async () => {
-		const events = [makeEvent(), makeEvent({ skill: { name: "vue", version: "3.5.0" } })];
+		const events = [makeEvent(), makeEvent({ skillId: "vue", version: "3.5.0" })];
 		mockReadFile.mockResolvedValue(events.map((e) => JSON.stringify(e)).join("\n"));
 
 		const reader = new JSONLReader("/path/to/events.jsonl");
 		const result = await reader.read();
 		expect(result).toHaveLength(2);
-		expect(result[0].skill.name).toBe("react");
-		expect(result[1].skill.name).toBe("vue");
+		expect(result[0].skillId).toBe("react");
+		expect(result[1].skillId).toBe("vue");
 	});
 
 	it("skips blank lines", async () => {
@@ -56,8 +59,8 @@ describe("JSONLReader", () => {
 		expect(result).toHaveLength(1);
 	});
 
-	it("skips events with wrong schema_version", async () => {
-		const event = { ...makeEvent(), schema_version: 2 };
+	it("skips events with wrong schemaVersion", async () => {
+		const event = { ...makeEvent(), schemaVersion: 2 };
 		mockReadFile.mockResolvedValue(JSON.stringify(event));
 
 		const reader = new JSONLReader("/path/to/events.jsonl");
